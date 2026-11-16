@@ -22,12 +22,14 @@
   --amber:#ffcc66;--amber2:#3a2f12;--blue2:#18283d;--shadow:none}
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{font-size:16px;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;padding-bottom:5rem}
 header{position:sticky;top:0;z-index:20;background:var(--accent);color:var(--accentfg);padding:.55rem .9rem;padding-top:calc(.55rem + env(safe-area-inset-top));display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-header h1{font-size:1.15rem;margin:0;flex:1;min-width:10rem}
+header h1{font-size:1rem;margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 header .ver{font-size:.7rem;opacity:.85;font-weight:400;margin-left:.3rem}
-header button{background:rgba(255,255,255,.18);color:inherit;border:0;border-radius:.5rem;padding:.35rem .6rem;font-size:.9rem;cursor:pointer}
+header button{background:rgba(255,255,255,.18);color:inherit;border:0;border-radius:.5rem;padding:.3rem .55rem;font-size:.9rem;cursor:pointer}
+header{padding-top:calc(.4rem + env(safe-area-inset-top));gap:.4rem}
 .disc{background:var(--amber2);color:var(--amber);font-size:.82rem;padding:.5rem .9rem;border-bottom:1px solid var(--line)}
 main{max-width:1200px;margin:0 auto;padding:.8rem;display:grid;gap:.8rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:980px){
@@ -111,6 +113,37 @@ dialog h2{margin:0 0 .6rem;font-size:1.1rem}
 @keyframes sp{to{transform:rotate(360deg)}}
 footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);font-size:.78rem}
 .sr{position:absolute;left:-9999px}
+.tabs{display:flex;gap:.3rem;flex:1 0 100%;overflow-x:auto}
+.tabs button{flex:1;min-width:5.5rem;background:rgba(255,255,255,.14);color:inherit;border:0;border-radius:.5rem;padding:.4rem .5rem;font-size:.88rem;cursor:pointer;white-space:nowrap}
+.tabs button[aria-pressed=true]{background:#fff;color:#1f5e44;font-weight:700}
+.wrap{max-width:900px;margin:0 auto;padding:.8rem}
+.dcard{border:1px solid var(--line);border-left-width:5px;border-radius:.7rem;background:var(--card);padding:.55rem .7rem;margin-bottom:.55rem}
+.dcard .sub{font-size:.85rem;color:var(--muted);margin-top:.2rem}
+.dcard .acts{margin-top:.4rem}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.25rem}
+.cal .h{text-align:center;font-size:.75rem;color:var(--muted)}
+.day{min-height:3.3rem;border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.2rem .1rem;font-size:.85rem;cursor:pointer;display:flex;flex-direction:column;align-items:center}
+.day.blank{border:0;background:transparent;cursor:default}
+.day.today{border-color:var(--accent);font-weight:700}
+.day.sel{outline:2px solid var(--accent)}
+.dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-top:auto}
+.dots i{width:.5rem;height:.5rem;border-radius:50%;display:block}
+.calhead{display:flex;align-items:center;gap:.5rem;margin:.5rem 0}
+.calhead b{flex:1;text-align:center;font-size:1.05rem}
+.legend{display:flex;gap:.7rem;flex-wrap:wrap;font-size:.82rem;margin-top:.5rem}
+.legend i{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.25rem;vertical-align:-.05rem}
+.heatwrap{overflow-x:auto}
+.heat{border-collapse:collapse;font-size:.8rem;min-width:36rem;width:100%}
+.heat th,.heat td{padding:.35rem .15rem;text-align:center;border:1px solid var(--card)}
+.heat td.n{text-align:left;position:sticky;left:0;background:var(--card);white-space:nowrap;padding:.35rem .5rem .35rem .2rem;font-weight:600}
+.heat th.now,.heat td.now{box-shadow:inset 0 0 0 2px var(--accent)}
+.lv0{background:var(--bg)}
+.lv1{background:color-mix(in srgb,var(--accent) 22%,var(--card))}
+.lv2{background:color-mix(in srgb,var(--accent) 52%,var(--card))}
+.lv3{background:color-mix(in srgb,var(--accent) 88%,var(--card))}
+.heat td.pn{background:var(--blue2)}
+.keys{display:flex;gap:.6rem;flex-wrap:wrap;font-size:.8rem;margin:.5rem 0}
+.keys i{display:inline-block;width:1rem;height:.8rem;border-radius:.2rem;vertical-align:-.1rem;margin-right:.25rem;border:1px solid var(--line)}
 .upd{padding:.55rem .9rem;font-size:.9rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;background:var(--blue2);border-bottom:1px solid var(--line)}
 .upd.new{background:var(--accent2);font-weight:600}
 .upd.err{background:var(--amber2);color:var(--amber)}
@@ -122,13 +155,19 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
   <h1>🌿 Hausmittel-Ratgeber<span class="ver" id="verTop"></span></h1>
   <button id="fMinus" aria-label="Schrift kleiner">A−</button>
   <button id="fPlus" aria-label="Schrift größer">A+</button>
-  <button id="btnUpd" aria-label="Auf Updates prüfen">⟳ Update</button>
+  <button id="btnUpd" aria-label="Auf Updates prüfen" title="Auf Update prüfen">⟳</button>
   <button id="btnInfo" aria-label="Hinweise">ⓘ</button>
+  <nav class="tabs" id="tabs" aria-label="Bereiche">
+    <button data-view="guide" aria-pressed="true">🩺 Ratgeber</button>
+    <button data-view="diary" aria-pressed="false">📒 Tagebuch</button>
+    <button data-view="cal" aria-pressed="false">📅 Kalender</button>
+    <button data-view="season" aria-pressed="false">🌦 Saison</button>
+  </nav>
 </header>
 <div class="disc">Orientierungshilfe – <b>keine Diagnose</b> und kein Ersatz für Ärztin/Arzt oder Apotheke. Notruf <b>112</b> · Ärztlicher Bereitschaftsdienst <b>116 117</b></div>
 
 <div class="upd" id="updBar" hidden></div>
-<main>
+<main id="viewGuide">
   <div class="col-l">
     <section class="card" id="profileCard">
       <h2>👤 Profil</h2>
@@ -179,6 +218,48 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     </section>
   </div>
 </main>
+
+<section class="wrap view" id="viewDiary" hidden>
+  <div class="card">
+    <h2>📒 Krankheitstagebuch</h2>
+    <div class="row"><select id="fpDiary" class="grow" aria-label="Person filtern"></select><button class="btn" id="enNew">+ Eintrag</button></div>
+    <input type="text" id="fq" placeholder="Suchen (Krankheit, Symptom, Notiz) …" style="margin-top:.5rem">
+    <div class="muted" id="dStats" style="margin-top:.5rem"></div>
+  </div>
+  <div id="dList"></div>
+  <div class="card">
+    <h2>💾 Daten auf diesem Gerät</h2>
+    <p class="muted" id="dataInfo" style="margin-top:0"></p>
+    <div class="row">
+      <button class="btn sec" id="btnExport">Backup exportieren</button>
+      <button class="btn sec" id="btnImport">Backup importieren</button>
+      <button class="btn danger" id="btnWipe">Alle Daten löschen</button>
+    </div>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+  </div>
+</section>
+
+<section class="wrap view" id="viewCal" hidden>
+  <div class="card">
+    <h2>📅 Kalender</h2>
+    <select id="fpCal" aria-label="Person filtern"></select>
+    <div class="calhead"><button class="btn sec" id="calPrev" aria-label="Voriger Monat">◀</button><b id="calTitle"></b><button class="btn sec" id="calNext" aria-label="Nächster Monat">▶</button></div>
+    <div class="cal" id="calGrid"></div>
+    <div class="legend" id="calLegend"></div>
+  </div>
+  <div class="card" id="dayCard"></div>
+</section>
+
+<section class="wrap view" id="viewSeason" hidden style="max-width:1000px">
+  <div class="card">
+    <h2>🌦 Krankheiten im Jahresverlauf</h2>
+    <div id="seasonNow"></div>
+    <div class="keys"><span><i class="lv0"></i>selten</span><span><i class="lv1"></i>gelegentlich</span><span><i class="lv2"></i>häufig</span><span><i class="lv3"></i>Hochsaison</span></div>
+    <div class="heatwrap"><table class="heat" id="heat"></table></div>
+    <p class="muted">Typische Muster in Mitteleuropa – nur zur Orientierung, einzelne Jahre und Regionen weichen ab. Die letzte Zeile zeigt, in welchen Monaten <b>deine</b> Tagebucheinträge begonnen haben.</p>
+  </div>
+</section>
+
 <footer id="foot"></footer>
 
 <div class="bar" id="bar"><div class="t" id="barT"></div><button class="btn" id="barGo">Ergebnis ▾</button></div>
@@ -210,6 +291,26 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
   </div>
 </dialog>
 
+<dialog id="dlgEntry">
+  <h2 id="enTitleH">Tagebucheintrag</h2>
+  <div class="field"><label for="enPid">Person</label><select id="enPid"></select></div>
+  <div class="field"><label for="enTitle">Krankheit / Beschwerde</label><input type="text" id="enTitle" list="dlCond" maxlength="80" placeholder="z. B. Erkältung"><datalist id="dlCond"></datalist></div>
+  <div class="row">
+    <div class="field grow"><label for="enStart">Beginn</label><input type="date" id="enStart"></div>
+    <div class="field grow"><label for="enEnd">Ende</label><input type="date" id="enEnd"></div>
+  </div>
+  <label class="chk"><input type="checkbox" id="enActive"><span>Noch aktiv (Ende offen)</span></label>
+  <div class="row">
+    <div class="field grow"><label for="enSev">Schweregrad</label><select id="enSev"><option value="1">leicht</option><option value="2">mittel</option><option value="3">schwer</option></select></div>
+    <div class="field grow"><label for="enTemp">Höchste Temperatur (°C)</label><input type="number" id="enTemp" step="0.1" min="35" max="43" inputmode="decimal"></div>
+  </div>
+  <div class="field"><label for="enSym">Symptome</label><textarea id="enSym" style="min-height:3.5rem"></textarea></div>
+  <div class="field"><label for="enTreat">Behandlung (Hausmittel, Medikamente)</label><textarea id="enTreat" style="min-height:3.5rem"></textarea></div>
+  <label class="chk"><input type="checkbox" id="enDoc"><span>Arzt aufgesucht</span></label>
+  <div class="field"><label for="enNote">Notizen</label><textarea id="enNote" style="min-height:3.5rem"></textarea></div>
+  <div class="row" style="margin-top:.8rem"><button class="btn" id="enSave">Speichern</button><button class="btn sec" id="enCancel">Abbrechen</button><button class="btn danger" id="enDel" style="margin-left:auto">Löschen</button></div>
+</dialog>
+
 <dialog id="dlgDisc">
   <h2>Wichtiger Hinweis</h2>
   <p>Diese App gibt <b>allgemeine Orientierung</b> zu Hausmitteln und rezeptfreien Wirkstoffen. Sie stellt <b>keine Diagnose</b>, ersetzt keine ärztliche oder pharmazeutische Beratung und kennt deine Krankengeschichte nicht.</p>
@@ -224,7 +325,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
 <script>
 "use strict";
-const APP_VERSION="1.2.0";
+const APP_VERSION="1.3.0";
 
 /* ============================================================
    DATENBANK
@@ -817,13 +918,13 @@ function generalWarnings(p,sel){
    ============================================================ */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let S={profiles:[],active:null,sel:new Set(),fs:1,ai:{key:"",model:"gemini-flash-latest"},disc:false,openCats:["allg"],userToggled:false,openConds:new Set(),filter:"",editing:null,draft:null};
+let S={diary:[],view:"guide",fpid:"all",fq:"",calY:new Date().getFullYear(),calM:new Date().getMonth(),calSel:null,lastBackup:null,persisted:null,editEntry:null,profiles:[],active:null,sel:new Set(),fs:1,ai:{key:"",model:"gemini-flash-latest"},disc:false,openCats:["allg"],userToggled:false,openConds:new Set(),filter:"",editing:null,draft:null};
 function save(){
-  try{localStorage.setItem(STORE_KEY,JSON.stringify({profiles:S.profiles,active:S.active,fs:S.fs,ai:S.ai,disc:S.disc,sel:[...S.sel]}));}catch(e){}
+  try{localStorage.setItem(STORE_KEY,JSON.stringify({profiles:S.profiles,diary:S.diary,lastBackup:S.lastBackup,active:S.active,fs:S.fs,ai:S.ai,disc:S.disc,sel:[...S.sel]}));}catch(e){}
 }
 function load(){
   try{const d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");
-    if(d){S.profiles=d.profiles||[];S.active=d.active;S.fs=d.fs||1;S.ai=Object.assign(S.ai,d.ai||{});S.disc=!!d.disc;S.sel=new Set(d.sel||[]);}}catch(e){}
+    if(d){S.profiles=d.profiles||[];S.diary=d.diary||[];S.lastBackup=d.lastBackup||null;S.active=d.active;S.fs=d.fs||1;S.ai=Object.assign(S.ai,d.ai||{});S.disc=!!d.disc;S.sel=new Set(d.sel||[]);}}catch(e){}
 }
 const prof=()=>S.profiles.find(p=>p.id===S.active)||null;
 function applyFont(){document.documentElement.style.fontSize=(16*S.fs)+"px";}
@@ -944,6 +1045,7 @@ function condHTML(res,rank,p,sel){
   // Arzt
   body+=`<h3>🏥 Wann zum Arzt?</h3><ul style="margin:.2rem 0 .2rem 1.1rem;padding:0">${c.arzt.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
   if(c.tipp)body+=`<div class="banner info" style="margin-top:.6rem">${esc(c.tipp)}</div>`;
+  body+=`<button type="button" class="btn sec" data-diary="${c.id}" style="margin-top:.7rem">📒 Ins Tagebuch eintragen</button>`;
   body+="</div>";
   return`<details class="cond${c.ernst===2?" ernst":""}" data-cond="${c.id}"${open?" open":""}><summary><div class="ctitle"><span>${c.ernst===2?"🚨 ":c.ernst===1?"🩺 ":""}${esc(c.n)}</span><span class="pct">${pct} %</span></div><div class="meter"><i style="width:${Math.max(4,pct)}%"></i></div><div class="tab-note" style="margin-top:.2rem">${label}${c.ernst===2?" · ärztlich abklären":c.ernst===1?" · ärztliche Abklärung empfohlen":""}</div></summary>${body}</details>`;
 }
@@ -974,7 +1076,7 @@ function updateBar(res){
   const top=res[0];
   t.innerHTML=`<b>${n} Symptom${n>1?"e":""} · ${top?esc(top.c.n):"keine Treffer"}</b><span class="muted">${top?Math.round(top.score*100)+" % Übereinstimmung":""}</span>`;
 }
-function renderAll(){renderProfile();renderSymptoms();renderSelected();renderResults();}
+function renderAll(){renderProfile();renderSymptoms();renderSelected();renderResults();if(typeof refreshViews==="function")refreshViews();}
 
 /* ============================================================
    KI (Google Gemini)
@@ -1090,7 +1192,14 @@ function init(){
   $("profNew").onclick=()=>openProfileDialog();
   $("dpAdult").onclick=()=>setType("adult");$("dpChild").onclick=()=>{setType("child");if($("dpUnit").value!=="m"&&$("dpAge").value==="")$("dpUnit").value="y";};
   $("dpSave").onclick=saveProfile;$("dpCancel").onclick=()=>$("dlgProfile").close();
-  $("dpDel").onclick=()=>{if(confirm("Profil wirklich löschen?")){S.profiles=S.profiles.filter(x=>x.id!==S.editing);S.active=S.profiles[0]?S.profiles[0].id:null;save();$("dlgProfile").close();renderAll();}};
+  $("dpDel").onclick=()=>{
+    if(!confirm("Profil wirklich löschen?"))return;
+    const pid=S.editing,pn=(S.profiles.find(x=>x.id===pid)||{}).name,n=S.diary.filter(e=>e.pid===pid).length;
+    if(n&&confirm(n+" Tagebucheinträge von "+pn+" ebenfalls löschen?\nOK = löschen, Abbrechen = Einträge behalten (ohne Profil)"))S.diary=S.diary.filter(e=>e.pid!==pid);
+    else S.diary.forEach(e=>{if(e.pid===pid)e.pname=pn;});
+    S.profiles=S.profiles.filter(x=>x.id!==pid);S.active=S.profiles[0]?S.profiles[0].id:null;
+    save();$("dlgProfile").close();renderAll();
+  };
   $("symSearch").oninput=e=>{S.filter=e.target.value;renderSymptoms();};
   $("symList").addEventListener("click",e=>{
     const b=e.target.closest("[data-sym]");if(!b)return;
@@ -1123,6 +1232,31 @@ function init(){
     $("aiStat").textContent="Teste …";
     try{await gemini("Antworte nur mit dem Wort: ok");$("aiStat").textContent="✓ Verbindung funktioniert.";}catch(e){$("aiStat").textContent="✗ "+(e.message||e);}
   };
+  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+  $("condList").addEventListener("click",e=>{
+    const b=e.target.closest("[data-diary]");if(!b)return;
+    const c=COND.find(x=>x.id===b.dataset.diary);if(!c)return;
+    openEntry(null,{title:c.n,sym:[...S.sel].filter(id=>SYM[id]).map(id=>SYM[id].label).join(", ")});
+  });
+  $("enNew").onclick=()=>openEntry(null,S.calSel?{}:{});
+  $("enSave").onclick=saveEntry;$("enCancel").onclick=()=>$("dlgEntry").close();$("enDel").onclick=deleteEntry;
+  $("enActive").onchange=e=>{if(e.target.checked)$("enEnd").value="";};
+  $("enEnd").onchange=e=>{if(e.target.value)$("enActive").checked=false;};
+  $("fpDiary").onchange=e=>{S.fpid=e.target.value;renderDiary();};
+  $("fpCal").onchange=e=>{S.fpid=e.target.value;renderCal();};
+  $("fq").oninput=e=>{S.fq=e.target.value;renderDiary();};
+  $("dList").addEventListener("click",e=>{const b=e.target.closest("[data-edit]");if(b)openEntry(b.dataset.edit);});
+  $("dayCard").addEventListener("click",e=>{
+    const b=e.target.closest("[data-edit]");if(b){openEntry(b.dataset.edit);return;}
+    const a=e.target.closest("[data-addday]");if(a)openEntry(null,{start:a.dataset.addday});
+  });
+  $("calGrid").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(!b)return;S.calSel=b.dataset.day;renderCal();});
+  $("calPrev").onclick=()=>{S.calM--;if(S.calM<0){S.calM=11;S.calY--;}renderCal();};
+  $("calNext").onclick=()=>{S.calM++;if(S.calM>11){S.calM=0;S.calY++;}renderCal();};
+  $("btnExport").onclick=exportData;$("btnImport").onclick=()=>$("fileImport").click();
+  $("fileImport").onchange=e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value="";};
+  $("btnWipe").onclick=wipeAll;
+  try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(ok=>{S.persisted=ok;if(S.view==="diary")renderDiary();}).catch(()=>{});}}catch(e){}
   $("aiExtract").onclick=aiExtract;$("aiAssess").onclick=aiAssess;$("aiAsk").onclick=aiAsk;
   if(!S.disc)$("dlgDisc").showModal();else if(!S.profiles.length)openProfileDialog();
   setupPWA();
@@ -1167,6 +1301,178 @@ async function checkUpdate(manual){
     if(manual){bar.hidden=false;bar.className="upd err";bar.innerHTML="<span>Update-Prüfung fehlgeschlagen: "+esc(e.message||e)+"</span>";}
   }
   btn.disabled=false;
+}
+
+/* ============================================================
+   TAGEBUCH · KALENDER · SAISON
+   ============================================================ */
+const MONTHS=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const MON=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+const PCOL=["#2e7d5b","#c2410c","#1d4ed8","#a21caf","#b45309","#0e7490","#be123c","#4d7c0f"];
+const SEV=["","leicht","mittel","schwer"];
+/* Saison-Intensität je Monat (Jan…Dez): 0 selten · 1 gelegentlich · 2 häufig · 3 Hochsaison */
+const SEASON=[
+ {n:"Erkältung",s:"332111001233"},{n:"Echte Grippe (Influenza)",s:"332100000012"},{n:"Rachenentzündung",s:"222111000122"},
+ {n:"Bronchitis",s:"332110000122"},{n:"Nasennebenhöhlenentzündung",s:"222111100122"},{n:"Mittelohrentzündung",s:"332111000122"},
+ {n:"Magen-Darm-Infekt",s:"332111111123"},{n:"Trockene Haut / Ekzem",s:"332100000123"},{n:"Nasenbluten",s:"221000000112"},
+ {n:"Heuschnupfen",s:"012333221000"},{n:"Bindehautentzündung",s:"221122221122"},{n:"Blasenentzündung",s:"111122221111"},
+ {n:"Insektenstiche",s:"000013332100"},{n:"Zeckenstich",s:"001233322100"},{n:"Sonnenbrand",s:"000123331000"},
+ {n:"Hitzeerschöpfung",s:"000012331000"},{n:"Reisekrankheit / Reisedurchfall",s:"000112331000"},{n:"Fußpilz",s:"001123332100"},{n:"Kopfläuse",s:"111110012321"}
+];
+const LV=["selten","gelegentlich","häufig","Hochsaison"];
+const pad2=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const todayS=()=>ymd(new Date());
+const pdate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12);};
+const fmtD=s=>{if(!s)return"";const [y,m,d]=s.split("-");return d+"."+m+"."+y;};
+function pcolor(pid){const i=S.profiles.findIndex(p=>p.id===pid);return i<0?"#888":PCOL[i%PCOL.length];}
+function pnameOf(e){const p=S.profiles.find(x=>x.id===e.pid);return p?p.name:(e.pname||"Gelöscht");}
+function entryEnd(e){let end=e.end||(e.active?todayS():e.start);if(end<e.start)end=e.start;return end;}
+function entryDays(e){const out=[];const d=pdate(e.start),end=pdate(entryEnd(e));let n=0;while(d<=end&&n<120){out.push(ymd(d));d.setDate(d.getDate()+1);n++;}return out;}
+function visEntries(){
+  const q=S.fq.trim().toLowerCase();
+  return S.diary.filter(e=>(S.fpid==="all"||e.pid===S.fpid)&&(!q||[e.title,e.sym,e.treat,e.note].join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>b.start.localeCompare(a.start));
+}
+function fillFilters(){
+  const opts='<option value="all">👥 Alle Personen</option>'+S.profiles.map(p=>`<option value="${esc(p.id)}">${p.type==="child"?"🧒":"🧑"} ${esc(p.name)}</option>`).join("");
+  if(S.fpid!=="all"&&!S.profiles.some(p=>p.id===S.fpid))S.fpid="all";
+  ["fpDiary","fpCal"].forEach(id=>{const el=$(id);el.innerHTML=opts;el.value=S.fpid;});
+  $("dlCond").innerHTML=COND.map(c=>`<option value="${esc(c.n)}">`).join("");
+}
+function dcardHTML(e,withEdit){
+  const col=pcolor(e.pid);
+  const range=e.end&&e.end!==e.start?fmtD(e.start)+" – "+fmtD(e.end):(e.active?fmtD(e.start)+" – heute (aktiv)":fmtD(e.start));
+  let t=`<span class="tag" style="border-color:${col};color:${col};font-weight:600">${esc(pnameOf(e))}</span>`;
+  if(e.sev)t+=`<span class="tag ${e.sev==3?"red":e.sev==2?"amber":"green"}">${SEV[e.sev]}</span>`;
+  if(e.temp)t+=`<span class="tag">${esc(String(e.temp).replace(".",","))} °C</span>`;
+  if(e.doc)t+=`<span class="tag">Arzt</span>`;
+  const days=entryDays(e).length;
+  let h=`<div class="dcard" style="border-left-color:${col}"><div class="ctitle"><span>${esc(e.title)}</span><span class="pct">${esc(range)}</span></div><div>${t}<span class="tag">${days} Tag${days>1?"e":""}</span></div>`;
+  if(e.sym)h+=`<div class="sub"><b>Symptome:</b> ${esc(e.sym)}</div>`;
+  if(e.treat)h+=`<div class="sub"><b>Behandlung:</b> ${esc(e.treat)}</div>`;
+  if(e.note)h+=`<div class="sub"><b>Notiz:</b> ${esc(e.note)}</div>`;
+  if(withEdit)h+=`<div class="acts"><button class="btn sec" data-edit="${esc(e.id)}" style="padding:.3rem .7rem">Bearbeiten</button></div>`;
+  return h+"</div>";
+}
+function renderDiary(){
+  fillFilters();
+  const list=visEntries();
+  $("dList").innerHTML=list.length?list.map(e=>dcardHTML(e,true)).join(""):`<div class="card muted">Noch keine Einträge. Tippe auf „+ Eintrag“ oder im Ratgeber bei einer Krankheit auf „Ins Tagebuch eintragen“.</div>`;
+  const cnt={};list.forEach(e=>{const k=e.title.trim();cnt[k]=(cnt[k]||0)+1;});
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>esc(k)+" ×"+v).join(" · ");
+  const yrs={};list.forEach(e=>{const y=e.start.slice(0,4);yrs[y]=(yrs[y]||0)+1;});
+  const yt=Object.keys(yrs).sort().reverse().map(y=>y+": "+yrs[y]).join(" · ");
+  $("dStats").innerHTML=list.length?`<b>${list.length}</b> Einträge${yt?" ("+yt+")":""}<br>Häufigste: ${top}`:"";
+  const lb=S.lastBackup?"Letztes Backup: "+fmtD(S.lastBackup.slice(0,10)):"Noch kein Backup exportiert";
+  const ps=S.persisted===true?"Speicher ist vom Browser als dauerhaft markiert ✓":"Der Browser könnte Daten bei Speichermangel löschen – regelmäßig ein Backup exportieren.";
+  $("dataInfo").innerHTML="Alle Profile, Tagebucheinträge und Einstellungen werden <b>nur auf diesem Gerät</b> gespeichert und nicht übertragen. "+esc(ps)+"<br>"+esc(lb)+".";
+}
+/* ---- Eintrag bearbeiten ---- */
+function openEntry(id,pre){
+  if(!S.profiles.length){alert("Bitte zuerst ein Profil anlegen.");openProfileDialog();return;}
+  const ex=id?S.diary.find(x=>x.id===id):null;
+  const e=ex?Object.assign({},ex):Object.assign({id:"e"+Date.now()+Math.floor(Math.random()*1000),pid:(S.fpid!=="all"?S.fpid:S.active)||S.profiles[0].id,title:"",start:todayS(),end:"",active:false,sev:1,temp:"",sym:"",treat:"",doc:false,note:""},pre||{});
+  S.editEntry={e,isNew:!ex};
+  fillFilters();
+  $("enPid").innerHTML=S.profiles.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+  if(!S.profiles.some(p=>p.id===e.pid))$("enPid").insertAdjacentHTML("afterbegin",`<option value="${esc(e.pid||"")}">${esc(e.pname||"Gelöscht")}</option>`);
+  $("enPid").value=e.pid;$("enTitle").value=e.title;$("enStart").value=e.start;$("enEnd").value=e.end||"";$("enActive").checked=!!e.active;
+  $("enSev").value=String(e.sev||1);$("enTemp").value=e.temp||"";$("enSym").value=e.sym||"";$("enTreat").value=e.treat||"";$("enDoc").checked=!!e.doc;$("enNote").value=e.note||"";
+  $("enDel").style.display=ex?"":"none";$("enTitleH").textContent=ex?"Eintrag bearbeiten":"Neuer Eintrag";
+  $("dlgEntry").showModal();
+}
+function saveEntry(){
+  const e=S.editEntry.e;
+  const title=$("enTitle").value.trim(),start=$("enStart").value;
+  if(!title||!start){alert("Bitte Krankheit und Beginn angeben.");return;}
+  e.pid=$("enPid").value;const p=S.profiles.find(x=>x.id===e.pid);if(p)e.pname=p.name;
+  e.title=title;e.start=start;e.end=$("enEnd").value;e.active=$("enActive").checked&&!e.end;
+  if(e.end&&e.end<e.start){const t=e.end;e.end=e.start;e.start=t;}
+  e.sev=Number($("enSev").value)||1;const tv=$("enTemp").value;e.temp=tv===""?"":Number(tv);
+  e.sym=$("enSym").value.trim();e.treat=$("enTreat").value.trim();e.doc=$("enDoc").checked;e.note=$("enNote").value.trim();
+  const i=S.diary.findIndex(x=>x.id===e.id);if(i>=0)S.diary[i]=e;else S.diary.push(e);
+  save();$("dlgEntry").close();S.calSel=e.start;refreshViews();
+}
+function deleteEntry(){
+  if(!confirm("Eintrag wirklich löschen?"))return;
+  S.diary=S.diary.filter(x=>x.id!==S.editEntry.e.id);save();$("dlgEntry").close();refreshViews();
+}
+/* ---- Kalender ---- */
+function renderCal(){
+  fillFilters();
+  const y=S.calY,m=S.calM;$("calTitle").textContent=MONTHS[m]+" "+y;
+  const first=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate();
+  const pref=y+"-"+pad2(m+1)+"-";const map={};
+  visEntries().forEach(e=>entryDays(e).forEach(d=>{if(d.startsWith(pref))(map[d]=map[d]||[]).push(e);}));
+  let g=["Mo","Di","Mi","Do","Fr","Sa","So"].map(d=>`<div class="h">${d}</div>`).join("");
+  for(let i=0;i<first;i++)g+=`<div class="day blank"></div>`;
+  const ts=todayS();
+  for(let d=1;d<=dim;d++){
+    const ds=pref+pad2(d),es=map[ds]||[];
+    const pids=[...new Set(es.map(e=>e.pid))];
+    const dots=pids.slice(0,4).map(p=>`<i style="background:${pcolor(p)}"></i>`).join("")+(pids.length>4?"+":"");
+    g+=`<button type="button" class="day${ds===ts?" today":""}${ds===S.calSel?" sel":""}" data-day="${ds}" aria-label="${d}. ${MONTHS[m]}${es.length?", "+es.length+" Einträge":""}">${d}<span class="dots">${dots}</span></button>`;
+  }
+  $("calGrid").innerHTML=g;
+  $("calLegend").innerHTML=S.profiles.map(p=>`<span><i style="background:${pcolor(p.id)}"></i>${esc(p.name)}</span>`).join("");
+  const sel=S.calSel;
+  if(!sel){$("dayCard").innerHTML=`<p class="muted" style="margin:0">Tippe auf einen Tag, um die Einträge zu sehen.</p>`;return;}
+  const es=visEntries().filter(e=>entryDays(e).includes(sel));
+  $("dayCard").innerHTML=`<h2>${fmtD(sel)}</h2>`+(es.length?es.map(e=>dcardHTML(e,true)).join(""):`<p class="muted">Keine Einträge an diesem Tag.</p>`)+`<button class="btn" data-addday="${sel}">+ Eintrag ab diesem Tag</button>`;
+}
+/* ---- Saison ---- */
+function renderSeason(){
+  const now=new Date().getMonth(),nxt=(now+1)%12;
+  const hot=SEASON.filter(x=>+x.s[now]>=2).sort((a,b)=>b.s[now]-a.s[now]);
+  const soon=SEASON.filter(x=>+x.s[nxt]>=2&&+x.s[now]<2);
+  $("seasonNow").innerHTML=`<p style="margin:.2rem 0"><b>Jetzt (${MONTHS[now]}) häufig:</b> ${hot.length?hot.map(x=>`<span class="tag ${x.s[now]==3?"red":"amber"}">${esc(x.n)}</span>`).join(""):"<span class='muted'>nichts Auffälliges</span>"}</p>`+
+    (soon.length?`<p style="margin:.2rem 0"><b>Im ${MONTHS[nxt]} zunehmend:</b> ${soon.map(x=>`<span class="tag">${esc(x.n)}</span>`).join("")}</p>`:"");
+  let t="<thead><tr><th></th>"+MON.map((mn,i)=>`<th class="${i===now?"now":""}">${mn}</th>`).join("")+"</tr></thead><tbody>";
+  SEASON.forEach(x=>{t+=`<tr><td class="n">${esc(x.n)}</td>`+[...x.s].map((v,i)=>`<td class="lv${v}${i===now?" now":""}" title="${esc(x.n)}, ${MON[i]}: ${LV[v]}"></td>`).join("")+"</tr>";});
+  const pc=Array(12).fill(0);visEntries().forEach(e=>{pc[Number(e.start.slice(5,7))-1]++;});
+  t+=`<tr><td class="n">📒 Meine Einträge</td>`+pc.map((v,i)=>`<td class="pn${i===now?" now":""}">${v||""}</td>`).join("")+"</tr></tbody>";
+  $("heat").innerHTML=t;
+}
+/* ---- Ansichten ---- */
+function switchView(v){
+  S.view=v;
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===v));
+  $("viewGuide").hidden=v!=="guide";$("viewDiary").hidden=v!=="diary";$("viewCal").hidden=v!=="cal";$("viewSeason").hidden=v!=="season";
+  $("bar").style.display=v==="guide"?"":"none";
+  refreshViews();window.scrollTo(0,0);
+}
+function refreshViews(){
+  fillFilters();
+  if(S.view==="diary")renderDiary();else if(S.view==="cal")renderCal();else if(S.view==="season")renderSeason();
+}
+/* ---- Backup ---- */
+function exportData(){
+  const d={app:"hausmittel-ratgeber",version:APP_VERSION,exported:new Date().toISOString(),profiles:S.profiles,diary:S.diary};
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:"application/json"}));
+  a.download="hausmittel-backup-"+todayS()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+  S.lastBackup=new Date().toISOString();save();renderDiary();
+}
+function importData(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||d.app!=="hausmittel-ratgeber"||!Array.isArray(d.profiles)||!Array.isArray(d.diary))throw new Error("Keine gültige Backup-Datei.");
+      if(!confirm("Backup zusammenführen?\n"+d.profiles.length+" Profile und "+d.diary.length+" Einträge werden hinzugefügt (gleiche IDs werden überschrieben)."))return;
+      d.profiles.forEach(p=>{if(!p||!p.id)return;const i=S.profiles.findIndex(x=>x.id===p.id);if(i>=0)S.profiles[i]=p;else S.profiles.push(p);});
+      d.diary.forEach(e=>{if(!e||!e.id||!e.start||!e.title)return;const i=S.diary.findIndex(x=>x.id===e.id);if(i>=0)S.diary[i]=e;else S.diary.push(e);});
+      if(!S.active&&S.profiles.length)S.active=S.profiles[0].id;
+      save();renderAll();alert("Backup eingespielt.");
+    }catch(e){alert("Import fehlgeschlagen: "+(e.message||e));}
+  };
+  r.readAsText(file);
+}
+function wipeAll(){
+  if(!confirm("Wirklich ALLE Profile, Tagebucheinträge und Einstellungen von diesem Gerät löschen?"))return;
+  if(!confirm("Das kann nicht rückgängig gemacht werden. Fortfahren?"))return;
+  try{localStorage.removeItem(STORE_KEY);}catch(e){}
+  location.replace(location.pathname+"?v="+Date.now());
 }
 //#LOGIC_END
 if(typeof document!=="undefined"&&document.getElementById("profSel"))init();
