@@ -111,6 +111,10 @@ dialog h2{margin:0 0 .6rem;font-size:1.1rem}
 @keyframes sp{to{transform:rotate(360deg)}}
 footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);font-size:.78rem}
 .sr{position:absolute;left:-9999px}
+.upd{padding:.55rem .9rem;font-size:.9rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;background:var(--blue2);border-bottom:1px solid var(--line)}
+.upd.new{background:var(--accent2);font-weight:600}
+.upd.err{background:var(--amber2);color:var(--amber)}
+.upd span{flex:1 1 12rem}
 </style>
 </head>
 <body>
@@ -118,10 +122,12 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
   <h1>🌿 Hausmittel-Ratgeber<span class="ver" id="verTop"></span></h1>
   <button id="fMinus" aria-label="Schrift kleiner">A−</button>
   <button id="fPlus" aria-label="Schrift größer">A+</button>
+  <button id="btnUpd" aria-label="Auf Updates prüfen">⟳ Update</button>
   <button id="btnInfo" aria-label="Hinweise">ⓘ</button>
 </header>
 <div class="disc">Orientierungshilfe – <b>keine Diagnose</b> und kein Ersatz für Ärztin/Arzt oder Apotheke. Notruf <b>112</b> · Ärztlicher Bereitschaftsdienst <b>116 117</b></div>
 
+<div class="upd" id="updBar" hidden></div>
 <main>
   <div class="col-l">
     <section class="card" id="profileCard">
@@ -218,7 +224,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
 <script>
 "use strict";
-const APP_VERSION="1.0.0";
+const APP_VERSION="1.2.0";
 
 /* ============================================================
    DATENBANK
@@ -228,7 +234,7 @@ const CATS=[
  {id:"hno",name:"Hals, Nase, Ohren",ico:"👃"},{id:"atem",name:"Atemwege & Husten",ico:"🫁"},
  {id:"mag",name:"Magen & Darm",ico:"🍽️"},{id:"haut",name:"Haut & Augen",ico:"🧴"},
  {id:"harn",name:"Harnwege",ico:"💧"},{id:"muskel",name:"Rücken, Muskeln, Gelenke",ico:"💪"},
- {id:"schlaf",name:"Schlaf & Psyche",ico:"😴"},{id:"zahn",name:"Zähne & Mund",ico:"🦷"}
+ {id:"schlaf",name:"Schlaf & Psyche",ico:"😴"},{id:"zahn",name:"Zähne & Mund",ico:"🦷"},{id:"frau",name:"Frauengesundheit",ico:"🌸"}
 ];
 // [id, Label, Kategorie, Warnstufe(rot|gelb), nurKinder]
 const SYM_RAW=[
@@ -302,9 +308,30 @@ const SYM_RAW=[
  ["zahnfleisch","Gerötetes / geschwollenes Zahnfleisch","zahn"],
  ["sabbern","Vermehrtes Sabbern","zahn","","k"],
  ["quengelig","Quengelig / unruhig","zahn","","k"],
- ["kauen","Kaut und beißt auf allem herum","zahn","","k"]
+ ["kauen","Kaut und beißt auf allem herum","zahn","","k"],
+ ["starkes_schwitzen","Starkes Schwitzen / Hitzegefühl","allg"],
+ ["verbrennung","Verbrennung / Verbrühung (Rötung, Schmerz)","haut"],
+ ["hautbrennen","Brennende, gerötete Haut nach Sonne","haut"],
+ ["blasen","Hautblasen","haut"],
+ ["wunde","Schürf- oder Schnittwunde","haut"],
+ ["haut_trocken","Trockene, raue, schuppige Haut","haut"],
+ ["pickel","Pickel / unreine Haut","haut","","",120],
+ ["lippenblaeschen","Bläschen / Kribbeln an der Lippe","haut"],
+ ["fuss_juckt","Juckende, schuppende Haut zwischen den Zehen","haut"],
+ ["zecke","Zecke gefunden / Zeckenstich","haut"],
+ ["lid_schwellung","Schmerzhafte Schwellung am Augenlid","haut"],
+ ["windel","Wunde, rote Haut im Windelbereich","haut","","k"],
+ ["laeuse","Juckende Kopfhaut / Läuse oder Nissen","haut","","k"],
+ ["nasenbluten","Nasenbluten","hno"],
+ ["ohr_zug","Schmerz beim Berühren oder Ziehen am Ohr","hno"],
+ ["reiseuebelkeit","Übelkeit beim Reisen (Auto/Schiff/Flug)","mag"],
+ ["analbeschwerden","Juckender/brennender After, Schmerz beim Stuhlgang","mag","","",144],
+ ["krampf","Muskelkrampf (z. B. Wade)","muskel"],
+ ["prellung","Prellung / Verstauchung (Schwellung, Bluterguss)","muskel"],
+ ["aphthen","Schmerzhafte Bläschen/Aphthen im Mund","zahn"],
+ ["menstruation_schmerz","Menstruationsschmerzen / Unterleibskrämpfe","frau","","",120]
 ];
-const SYM={};SYM_RAW.forEach(([id,label,cat,warn,kids])=>SYM[id]={id,label,cat,warn:warn||"",kids:!!kids});
+const SYM={};SYM_RAW.forEach(([id,label,cat,warn,kids,minAgeM])=>SYM[id]={id,label,cat,warn:warn||"",kids:!!kids,minAgeM:minAgeM||0});
 const WARN_TXT={
  atemnot:"Atemnot → Notruf 112",
  brustschmerz:"Starke Brustschmerzen/Druck → Notruf 112",
@@ -387,34 +414,94 @@ const REM={
  zwiebelohr:{n:"Warmes Zwiebelsäckchen am Ohr (nicht im Ohr)",minM:12,w:"Fein gehackte Zwiebel in ein Tuch, kurz erwärmen und an die Ohrmuschel legen, 15–20 Minuten. Nicht bei Ohrausfluss oder verletztem Trommelfell.",e:"Wärme kann Schmerzen lindern (Wirkung wissenschaftlich begrenzt belegt).",relSym:["ohrenschmerz"]},
  krupp:{n:"Ruhe bewahren, kühle frische Luft, Kind aufrecht halten",w:"Kind beruhigen (Aufregung verschlimmert), kurz ans offene Fenster/auf den Balkon, aufrecht tragen. Bei Atemnot oder ziehenden Geräuschen: Notruf 112.",e:"Kühle Luft kann die Schwellung der Schleimhaut mindern."},
  kuehlhals:{n:"Kühlen: Eis am Stiel, kalte Getränke",minM:12,w:"Kühle Getränke oder Eis in kleinen Mengen.",e:"Kühlung lindert Schluckschmerz.",relSym:["halsschmerz","schluckbeschw"]},
- halswickel:{n:"Quarkwickel um den Hals",minM:12,w:"Raumtemperierten Quark ca. 1 cm dick auf ein Tuch streichen, um den Hals legen, abdecken, bis er warm wird (20–30 Min.). Nicht bei Hautreizung oder Milcheiweißallergie.",e:"Kühlender Wickel bei Halsentzündung.",relSym:["halsschmerz","schluckbeschw","lymph"]}
+ halswickel:{n:"Quarkwickel um den Hals",minM:12,w:"Raumtemperierten Quark ca. 1 cm dick auf ein Tuch streichen, um den Hals legen, abdecken, bis er warm wird (20–30 Min.). Nicht bei Hautreizung oder Milcheiweißallergie.",e:"Kühlender Wickel bei Halsentzündung.",relSym:["halsschmerz","schluckbeschw","lymph"]},
+ pech:{n:"Kühlen, Hochlagern, Entlasten (PECH-Regel)",w:"Belastung stoppen, 10–15 Minuten mit Kühlpack (in Tuch gewickelt, nie direkt auf die Haut) kühlen, leicht komprimieren, Arm/Bein hochlagern. Mehrmals täglich wiederholen.",e:"Begrenzt Schwellung und Bluterguss in den ersten Stunden.",relSym:["prellung","schwellung"]},
+ hitze_kuehl:{n:"Kühlen Ort aufsuchen, Kleidung lockern, in kleinen Schlucken trinken",w:"Schatten/kühler Raum, Nacken, Stirn und Handgelenke mit feuchtem Tuch kühlen, Beine hochlagern, kühles (nicht eiskaltes) Wasser oder verdünnte Saftschorle trinken.",e:"Senkt die Körpertemperatur und gleicht Flüssigkeitsverlust aus.",relSym:["starkes_schwitzen","schwindel"]},
+ kreislauf:{n:"Langsam aufstehen, Beine hochlagern, ausreichend trinken",minM:144,minText:"Bei Kindern ärztlich abklären.",w:"Aus dem Liegen/Sitzen schrittweise aufstehen, Beine auf und ab bewegen, 2 Liter Flüssigkeit über den Tag, regelmäßig essen.",e:"Stabilisiert den Blutdruck.",relSym:["schwindel"]},
+ wechseldusche:{n:"Wechselduschen / Kneipp-Anwendungen",minM:144,minText:"Für Kinder nicht als Selbstbehandlung.",w:"Morgens Arme/Beine abwechselnd warm und kalt abbrausen, immer mit Kaltem enden.",e:"Trainiert die Gefäße und kurbelt den Kreislauf an.",relSym:["schwindel","muedigkeit"]},
+ aloe:{n:"Aloe-Vera-Gel / kühle Umschläge",minM:12,w:"Reines Gel (ohne Duftstoffe) dünn auftragen oder feuchte, kühle Tücher auflegen. Nicht auf offene oder nässende Haut.",e:"Kühlt und beruhigt gerötete Haut.",relSym:["hautbrennen","verbrennung","hautroetung"]},
+ sonne_meiden:{n:"Sonne meiden, lockere Kleidung, viel trinken",w:"Mindestens 2–3 Tage direkte Sonne meiden, Haut bedecken, reichlich trinken.",e:"Die Haut braucht Zeit zum Erholen; Sonne verschlimmert den Schaden.",relSym:["hautbrennen"]},
+ verbr_kuehlen:{n:"Sofort lauwarm kühlen (ca. 20 °C, 10–20 Minuten)",w:"Unter fließendes lauwarmes Wasser halten – nicht eiskalt und nicht mit Eis. Festklebende Kleidung nicht abreißen. Danach keimfrei locker abdecken. Kein Mehl, Butter, Öl oder Zahnpasta.",e:"Stoppt die Wärmeschädigung des Gewebes und lindert den Schmerz.",relSym:["verbrennung"],ageNotes:[{maxM:72,t:"Bei kleinen Kindern nur die verbrannte Stelle kühlen – Auskühlung des Körpers vermeiden."}]},
+ wunde_reinig:{n:"Wunde mit klarem Wasser spülen, abdecken",w:"Hände waschen, Wunde unter fließendem Wasser spülen, Schmutz vorsichtig entfernen, mit sterilem Pflaster oder Verband abdecken, täglich kontrollieren. Tetanus-Impfschutz prüfen.",e:"Verhindert Infektion und fördert die Heilung.",relSym:["wunde"]},
+ ringelblume:{n:"Ringelblumen-(Calendula-)Salbe",minM:6,avoid:{korbbl:"Ringelblume ist ein Korbblütler – bei Allergie meiden."},w:"Dünn auf saubere, nicht nässende Haut auftragen.",e:"Traditionell zur Wundheilung und Hautberuhigung.",relSym:["wunde","windel","haut_trocken"]},
+ zecke_entf:{n:"Zecke zügig mit Zeckenkarte oder Pinzette entfernen",w:"Möglichst hautnah greifen und gerade herausziehen – nicht drehen oder quetschen, kein Öl/Kleber. Stelle desinfizieren, Datum notieren und die Haut 6 Wochen beobachten (Wanderröte).",e:"Je früher entfernt, desto geringer das Infektionsrisiko.",relSym:["zecke"]},
+ nase_vorn:{n:"Kopf leicht nach vorn, Nasenflügel 10 Minuten zudrücken",w:"Aufrecht sitzen, Kopf leicht nach vorn (nicht in den Nacken!), weichen Teil der Nase 10 Minuten zusammendrücken, kühler Umschlag im Nacken. Danach ca. 24 Stunden nicht schnäuzen.",e:"Der Druck lässt das Gefäß in der Nasenschleimhaut gerinnen.",relSym:["nasenbluten"]},
+ warm_auge:{n:"Warme Kompresse auf das Augenlid",w:"Sauberes Tuch in warmes (nicht heißes) Wasser tauchen und 3–4-mal täglich 10 Minuten auflegen. Nie ausdrücken, Hände waschen.",e:"Wärme fördert den Abfluss der verstopften Drüse.",relSym:["lid_schwellung"]},
+ ohr_trocken:{n:"Ohr trocken halten, keine Wattestäbchen",w:"Beim Duschen/Baden Ohr schützen (z. B. Ohrstöpsel), nicht im Gehörgang bohren oder kratzen.",e:"Schützt die Haut des Gehörgangs und schiebt Ohrenschmalz nicht tiefer.",relSym:["ohr_zug","hoerminderung"]},
+ dehnen:{n:"Sanft dehnen, danach wärmen und massieren",w:"Verkrampften Muskel langsam dehnen (Wade: Fußspitze zum Knie ziehen), danach Wärme und leichte Massage; ausreichend trinken.",e:"Löst den Krampf und beugt Wiederholung vor.",relSym:["krampf"]},
+ periode_waerme:{n:"Wärme (Wärmflasche, warmes Bad)",minM:120,minText:"Erst nach Beginn der Regelblutung relevant.",w:"Handwarme Wärmflasche auf den Unterbauch oder warmes Bad, bis zu 30 Minuten.",e:"Entspannt die Gebärmuttermuskulatur und lindert Krämpfe.",relSym:["menstruation_schmerz"]},
+ periode_tee:{n:"Frauenmantel- oder Fencheltee",minM:120,minText:"Erst nach Beginn der Regelblutung relevant.",w:"1–2 TL mit heißem Wasser übergießen, 10 Minuten ziehen lassen, 2–3 Tassen täglich.",e:"Traditionell krampflösend bei Regelschmerzen.",relSym:["menstruation_schmerz"]},
+ reise_luft:{n:"Frische Luft, Blick zum Horizont, leichte Mahlzeiten, Akupressur-Band",w:"Vorne sitzen bzw. auf Deck, Horizont fixieren, nicht lesen, vor der Reise leicht essen, Pausen einlegen. Akupressur-Bänder (P6-Punkt) können versucht werden.",e:"Reduziert die widersprüchlichen Sinnesreize, die die Übelkeit auslösen.",relSym:["reiseuebelkeit","uebelkeit"]},
+ sitzbad:{n:"Lauwarmes Sitzbad (z. B. Eichenrinde)",minM:144,minText:"Bei Kindern ärztlich abklären.",w:"10–15 Minuten in lauwarmem Wasser, ggf. mit Eichenrinden-Extrakt, danach sanft trocken tupfen.",e:"Lindert Brennen, Juckreiz und Schwellung.",relSym:["analbeschwerden"]},
+ analpflege:{n:"Weicher Stuhl, sanfte Reinigung mit Wasser",w:"Ballaststoffe und Flüssigkeit, nicht pressen, After mit lauwarmem Wasser statt trockenem Papier reinigen.",e:"Verhindert Verschlimmerung durch harten Stuhl und Reibung.",relSym:["analbeschwerden"]},
+ mundspuel:{n:"Mundspülung mit Salbei- oder Kamillentee",minM:72,minText:"Spülen können Kinder meist erst ab ca. 6 Jahren sicher.",caution:{korbbl:"Bei Korbblütler-Allergie nur Salbei verwenden, keine Kamille.",schwanger:"Salbei in der Schwangerschaft nur kurz und nicht in größeren Mengen.",stillen:"Salbei kann die Milchmenge verringern."},w:"Lauwarmen Tee mehrmals täglich im Mund halten, nicht schlucken.",e:"Entzündungshemmend und beruhigend auf der Mundschleimhaut.",relSym:["aphthen","zahnfleisch"]},
+ mundschonen:{n:"Scharfes, Saures und Salziges meiden, weiche Kost, kühle Speisen",w:"Reizende Speisen weglassen, Strohhalm verwenden, kühle Getränke/Joghurt.",e:"Weniger Schmerz beim Essen, Aphthen heilen schneller.",relSym:["aphthen"]},
+ herpes_hyg:{n:"Nicht berühren, Hände waschen, Handtuch/Besteck nicht teilen",w:"Bläschen nicht aufkratzen oder drücken, nach Kontakt Hände waschen, Küssen vermeiden; Kühlen mit feuchtem Tuch kann Spannen lindern.",e:"Schützt vor Ansteckung und Weiterverbreitung.",relSym:["lippenblaeschen"]},
+ stimme:{n:"Stimme schonen (nicht flüstern), viel trinken, Rauch meiden",w:"Wenig und leise sprechen, nicht räuspern, Raumluft befeuchten, nicht rauchen.",e:"Die Stimmlippen können abschwellen und heilen.",relSym:["heiserkeit"]},
+ islaendisch:{n:"Isländisch-Moos-Tee",minM:48,minText:"Für jüngere Kinder nicht empfohlen.",w:"1–2 TL mit heißem Wasser übergießen, 10 Minuten ziehen lassen, schluckweise trinken.",e:"Schleimstoffe legen sich als Schutzfilm auf die Schleimhaut.",relSym:["heiserkeit","husten_trocken","halsschmerz"]},
+ leinsamenschleim:{n:"Leinsamenschleim",minM:72,minText:"Für kleinere Kinder nicht empfohlen.",w:"1 EL ganze Leinsamen in 200 ml kaltem Wasser ca. 20 Minuten quellen lassen, abseihen, in kleinen Schlucken trinken.",e:"Schützt gereizte Magenschleimhaut.",relSym:["bauchschmerz","sodbrennen","uebelkeit"]},
+ lavendel:{n:"Lavendelblüten-Tee oder -Bad",minM:72,minText:"Für kleine Kinder nicht empfohlen.",w:"1 TL Blüten mit heißem Wasser übergießen, 10 Minuten ziehen lassen; oder Lavendelbad nach Packungsangabe.",e:"Beruhigend und entspannend.",relSym:["unruhe","stress","einschlaf","durchschlaf"]},
+ pickel_reinig:{n:"Sanfte Reinigung (2× täglich), nicht ausdrücken",minM:120,w:"Mit milder, seifenfreier Waschlotion reinigen, nicht schrubben, nichts ausdrücken, nicht fettende Pflege nutzen.",e:"Verhindert Entzündung und Narben.",relSym:["pickel"]},
+ teebaum:{n:"Teebaumöl (max. 5 %) – nur punktuell",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"In der Schwangerschaft nur nach Rücksprache."},w:"Nur in verdünnter Zubereitung (max. 5 %), punktuell auf Pickel, nicht in Augennähe; Hautreizung möglich, nie unverdünnt.",e:"Leicht antibakteriell und entzündungshemmend.",relSym:["pickel"]},
+ haut_pflege:{n:"Rückfettende Pflege, lauwarm statt heiß duschen",w:"Kurz und lauwarm waschen, mildes Waschmittel, direkt danach eincremen; Baumwollkleidung.",e:"Stärkt die Hautbarriere gegen Austrocknung.",relSym:["haut_trocken"]},
+ haferbad:{n:"Haferbad / Haferstrohbad",minM:6,w:"Haferstroh- oder Haferflocken-Zusatz nach Packungsangabe, 10–15 Minuten lauwarm baden.",e:"Beruhigt trockene, juckende Haut.",relSym:["haut_trocken","juckreiz"]},
+ fuss_trocken:{n:"Füße gründlich abtrocknen, Socken wechseln, Schuhe lüften",w:"Zehenzwischenräume nach dem Waschen trocken tupfen, Baumwollsocken bei 60 °C waschen, nicht barfuß in öffentlichen Duschen.",e:"Pilze brauchen Feuchtigkeit – Trockenheit stoppt sie.",relSym:["fuss_juckt"]},
+ windel_luft:{n:"Windel häufig wechseln, Po lauwarm abspülen, lüften",w:"Mit Wasser statt Feuchttüchern reinigen, Haut trocken tupfen, Po so oft wie möglich an der Luft lassen.",e:"Weniger Feuchtigkeit und Reibung – die wichtigste Maßnahme.",relSym:["windel"]},
+ laeuse_kamm:{n:"Nasskämm-Methode mit Läusekamm",w:"Haare mit Pflegespülung nass machen und Strähne für Strähne gründlich auskämmen, alle 3–4 Tage über 2 Wochen wiederholen. Mützen, Kämme und Bettwäsche heiß (60 °C) waschen.",e:"Entfernt Läuse und Larven mechanisch.",relSym:["laeuse"]}
 };
 
 /* Rezeptfreie Wirkstoffe (ohne Dosisangaben!) */
 const MED={
- paracetamol:{n:"Paracetamol (Fieber/Schmerz)",minM:3,minText:"Unter 3 Monaten nur nach ärztlicher Anweisung.",dose:true,lowKg:50,lowKgText:"Unter 50 kg Körpergewicht gelten reduzierte Höchstmengen – Packungsbeilage/Apotheke beachten.",caution:{niere:"Bei Leber-/Nierenerkrankung vorher ärztlich klären.",schwanger:"In der Schwangerschaft gilt Paracetamol als Mittel der Wahl – so kurz und niedrig dosiert wie möglich, Rücksprache empfohlen."},w:"Fiebersenkend und schmerzlindernd. Mehrfachpräparate prüfen (nicht doppelt Paracetamol nehmen). Selbstmedikation bei Fieber max. ca. 3 Tage, bei Schmerzen ca. 4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung"],ageNotes:[{maxM:6,t:"Fieber bei Säuglingen: Kinderärztin/Kinderarzt einbeziehen."}]},
- ibuprofen:{n:"Ibuprofen (Fieber/Schmerz/Entzündung)",minM:6,minText:"Erst ab 6 Monaten.",minKg:6,dose:true,avoid:{magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",niere:"Bei Nierenerkrankung nicht geeignet.",schwanger:"In der Schwangerschaft nicht in Eigenregie (im letzten Drittel nicht anwenden) – ärztlich klären."},caution:{asthma:"Kann bei Asthma Anfälle auslösen – Vorsicht.",blutverd:"Blutungsrisiko erhöht – nur nach ärztlicher Rücksprache.",stillen:"Kurzzeitig meist vertretbar – Rücksprache."},cautionSym:[["durchfall","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["erbrechen","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["dehydration","Bei Austrocknung nicht anwenden."]],senior:"Ab 65 Jahren erhöhtes Risiko für Magen-, Nieren- und Herz-Kreislauf-Nebenwirkungen – ärztlich/Apotheke abklären.",w:"Schmerzlindernd, fiebersenkend, entzündungshemmend. Mit einer Mahlzeit einnehmen. Selbstmedikation max. ca. 3–4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","brennen"]},
+ paracetamol:{n:"Paracetamol (Fieber/Schmerz)",minM:3,minText:"Unter 3 Monaten nur nach ärztlicher Anweisung.",dose:true,lowKg:50,lowKgText:"Unter 50 kg Körpergewicht gelten reduzierte Höchstmengen – Packungsbeilage/Apotheke beachten.",caution:{niere:"Bei Leber-/Nierenerkrankung vorher ärztlich klären.",schwanger:"In der Schwangerschaft gilt Paracetamol als Mittel der Wahl – so kurz und niedrig dosiert wie möglich, Rücksprache empfohlen."},w:"Fiebersenkend und schmerzlindernd. Mehrfachpräparate prüfen (nicht doppelt Paracetamol nehmen). Selbstmedikation bei Fieber max. ca. 3 Tage, bei Schmerzen ca. 4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","ohr_zug","prellung","hautbrennen","verbrennung"],ageNotes:[{maxM:6,t:"Fieber bei Säuglingen: Kinderärztin/Kinderarzt einbeziehen."}]},
+ ibuprofen:{n:"Ibuprofen (Fieber/Schmerz/Entzündung)",minM:6,minText:"Erst ab 6 Monaten.",minKg:6,dose:true,avoid:{magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",niere:"Bei Nierenerkrankung nicht geeignet.",schwanger:"In der Schwangerschaft nicht in Eigenregie (im letzten Drittel nicht anwenden) – ärztlich klären."},caution:{asthma:"Kann bei Asthma Anfälle auslösen – Vorsicht.",blutverd:"Blutungsrisiko erhöht – nur nach ärztlicher Rücksprache.",stillen:"Kurzzeitig meist vertretbar – Rücksprache."},cautionSym:[["durchfall","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["erbrechen","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["dehydration","Bei Austrocknung nicht anwenden."]],senior:"Ab 65 Jahren erhöhtes Risiko für Magen-, Nieren- und Herz-Kreislauf-Nebenwirkungen – ärztlich/Apotheke abklären.",w:"Schmerzlindernd, fiebersenkend, entzündungshemmend. Mit einer Mahlzeit einnehmen. Selbstmedikation max. ca. 3–4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","brennen","ohr_zug","prellung","menstruation_schmerz","hautbrennen","verbrennung"]},
  ass:{n:"Acetylsalicylsäure (ASS)",minM:216,minText:"Bei Kindern und Jugendlichen mit Fieber/Infekt nicht anwenden (Gefahr des Reye-Syndroms).",avoid:{magen:"Bei Magen-/Darmgeschwür nicht geeignet.",blutverd:"Mit Blutverdünnern nicht kombinieren.",schwanger:"In der Schwangerschaft nicht anwenden.",stillen:"In der Stillzeit nur nach Rücksprache."},caution:{asthma:"Kann bei Asthma Anfälle auslösen."},w:"Schmerz- und fiebersenkend; nur Erwachsene. Selbstmedikation max. ca. 3–4 Tage.",relSym:["kopfschmerz","kopf_einseitig","gliederschmerz","fieber","hohes_fieber"]},
  xylo:{n:"Abschwellendes Nasenspray (Xylometazolin u. a.)",minM:24,minText:"Unter 2 Jahren nur nach ärztlicher Anweisung.",dose:false,caution:{schwanger:"Nur kurz und nach Rücksprache.",stillen:"Nur kurz und nach Rücksprache."},ageNotes:[{maxM:72,t:"Für Kinder nur speziell dafür zugelassene, niedriger dosierte Kinder-Zubereitung verwenden."}],w:"Nicht länger als ca. 5–7 Tage anwenden (sonst Gewöhnung/Schleimhautschäden), nicht dauerhaft. Vor allem vor dem Schlafen.",relSym:["nase_verstopft","schnupfen_klar","schnupfen_eitrig","druck_stirn"]},
  lutsch:{n:"Lutschtabletten / Halsspray (z. B. Salbei, Isländisch Moos)",minM:72,minText:"Lutschtabletten erst ab ca. 6 Jahren (Verschluckungsgefahr), Mentholsprays bei kleinen Kindern nicht.",caution:{schwanger:"Salbei-/Mentholhaltige Präparate nur nach Rücksprache."},w:"Nach Packungsbeilage; lindern Halsschmerz und Heiserkeit.",relSym:["halsschmerz","schluckbeschw","heiserkeit"]},
  hustenloeser:{n:"Schleimlöser (Acetylcystein, Ambroxol)",minM:24,minText:"Unter 2 Jahren nicht ohne ärztlichen Rat.",dose:true,caution:{asthma:"Kann Atemwege verengen – vorsichtig.",magen:"Acetylcystein kann den Magen reizen.",schwanger:"Nur nach ärztlicher Rücksprache (v. a. im ersten Drittel)."},w:"Nur bei Husten mit zähem Schleim; dazu viel trinken. Nicht abends kurz vor dem Schlafen.",relSym:["husten_schleim","auswurf"]},
  hustenstiller:{n:"Hustenstiller (Dextromethorphan)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{schwanger:"In der Schwangerschaft nur nach ärztlicher Rücksprache."},caution:{asthma:"Bei Asthma nur nach ärztlicher Rücksprache."},blockSym:[["husten_schleim","Bei verschleimtem Husten nicht anwenden – Schleim muss abgehustet werden."],["auswurf","Bei Auswurf nicht anwenden."]],w:"Nur bei trockenem Reizhusten, kurzzeitig (z. B. nachts).",relSym:["husten_trocken"]},
  antihist:{n:"Antihistaminikum (Cetirizin/Loratadin)",minM:24,minText:"Unter 2 Jahren nur nach ärztlicher Anweisung.",dose:true,caution:{niere:"Dosis bei Nierenerkrankung anpassen – ärztlich klären.",schwanger:"Nur nach ärztlicher Rücksprache.",stillen:"Nur nach ärztlicher Rücksprache."},w:"Gegen Niesen, Juckreiz und tränende Augen bei Allergie; kann müde machen.",relSym:["niesen","augen_juckend","juckreiz","schnupfen_klar","hautausschlag"]},
- ors:{n:"Elektrolytlösung aus der Apotheke (ORS)",w:"Nach Packungsanleitung anrühren; in kleinen Schlucken (z. B. löffelweise) alle paar Minuten. Auch bei Erbrechen geeignet.",relSym:["durchfall","erbrechen","dehydration"],ageNotes:[{maxM:24,t:"Bei Säuglingen/Kleinkindern mit Durchfall/Erbrechen ärztlich begleiten lassen; Stillen/Flaschennahrung fortsetzen."}]},
+ ors:{n:"Elektrolytlösung aus der Apotheke (ORS)",w:"Nach Packungsanleitung anrühren; in kleinen Schlucken (z. B. löffelweise) alle paar Minuten. Auch bei Erbrechen geeignet.",relSym:["durchfall","erbrechen","dehydration","starkes_schwitzen"],ageNotes:[{maxM:24,t:"Bei Säuglingen/Kleinkindern mit Durchfall/Erbrechen ärztlich begleiten lassen; Stillen/Flaschennahrung fortsetzen."}]},
  loperamid:{n:"Loperamid (Durchfallmittel)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{schwanger:"In der Schwangerschaft nicht ohne ärztlichen Rat."},blockSym:[["fieber","Bei Fieber nicht anwenden."],["hohes_fieber","Bei Fieber nicht anwenden."],["durchfall_blutig","Bei blutigem Durchfall nicht anwenden."]],w:"Nur kurz (max. 2 Tage), nicht bei bakteriellem Infekt; Flüssigkeit ersetzen bleibt wichtig.",relSym:["durchfall"]},
  simeticon:{n:"Simeticon (Entschäumer)",w:"Entschäumer gegen Blähungen; wird nicht aufgenommen und ist daher auch für Säuglinge üblich. Nach Packungsbeilage.",relSym:["blaehungen","bauchkraempfe"]},
  laktulose:{n:"Laktulose / Macrogol (mildes Abführmittel)",minM:12,minText:"Unter 1 Jahr nur nach Rücksprache mit der Kinderärztin/dem Kinderarzt.",w:"Nach Packungsbeilage; wirkt nach 1–2 Tagen. Reichlich trinken. Nicht dauerhaft ohne ärztlichen Rat.",relSym:["verstopfung"],cautionSym:[["erbrechen","Bei Erbrechen oder starken Bauchschmerzen nicht anwenden."]]},
  antazida:{n:"Antazida (Magensäure bindend)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{niere:"Bei Nierenerkrankung nicht geeignet (Aluminium/Magnesium)."},w:"Nach Packungsbeilage, kurzzeitig; Abstand zu anderen Medikamenten beachten.",relSym:["sodbrennen","aufstossen"]},
- schmerzgel:{n:"Schmerzgel (z. B. Ibuprofen- oder Diclofenac-Gel)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"In der Schwangerschaft nur nach Rücksprache.",asthma:"Bei Asthma/NSAR-Empfindlichkeit Vorsicht."},w:"Auf intakte Haut dünn auftragen, nicht unter Okklusivverband, nicht in Augen/Schleimhäute.",relSym:["ruecken","verspannung","gelenk"]},
+ schmerzgel:{n:"Schmerzgel (z. B. Ibuprofen- oder Diclofenac-Gel)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"In der Schwangerschaft nur nach Rücksprache.",asthma:"Bei Asthma/NSAR-Empfindlichkeit Vorsicht."},w:"Auf intakte Haut dünn auftragen, nicht unter Okklusivverband, nicht in Augen/Schleimhäute.",relSym:["ruecken","verspannung","gelenk","prellung"]},
  traenen:{n:"Künstliche Tränen / konservierungsmittelfreie Augentropfen",w:"Nach Packungsbeilage; befeuchten und spülen. Bei eitrigen Augen ärztlich klären.",relSym:["augen_juckend","augen_eitrig"],ageNotes:[{maxM:12,t:"Bei Säuglingen mit Augenbeschwerden zuerst ärztlich vorstellen."}]},
- stichgel:{n:"Kühlendes Gel (z. B. mit Antihistaminikum)",minM:24,minText:"Unter 2 Jahren ärztlich/apothekerlich beraten lassen.",w:"Dünn auf die betroffene Stelle, nicht auf offene Haut oder Schleimhäute.",relSym:["schwellung","juckreiz","hautroetung"]}
+ stichgel:{n:"Kühlendes Gel (z. B. mit Antihistaminikum)",minM:24,minText:"Unter 2 Jahren ärztlich/apothekerlich beraten lassen.",w:"Dünn auf die betroffene Stelle, nicht auf offene Haut oder Schleimhäute.",relSym:["schwellung","juckreiz","hautroetung"]},
+ pelargonium:{pf:1,n:"Pelargonium-Extrakt (pflanzlich, bei Bronchitis/Erkältung)",minM:12,minText:"Erst ab 1 Jahr.",caution:{niere:"Bei Lebererkrankung nur nach Rücksprache.",blutverd:"Mit Blutverdünnern nur nach Rücksprache.",schwanger:"Datenlage unzureichend – Rücksprache.",stillen:"Datenlage unzureichend – Rücksprache."},w:"Nach Packungsbeilage; kann Dauer und Stärke der Beschwerden verkürzen. Bei Kindern altersgerechte Zubereitung wählen.",relSym:["husten_schleim","husten_trocken","halsschmerz","auswurf"]},
+ efeu:{pf:1,n:"Efeublätter-Extrakt (pflanzlich, Hustenlöser)",minM:24,minText:"Unter 2 Jahren nicht ohne ärztlichen Rat.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Löst Schleim und erleichtert das Abhusten; nach Packungsbeilage, viel trinken.",relSym:["husten_schleim","husten_trocken"]},
+ cineol:{pf:1,n:"Cineol (Eukalyptus-Kapseln, pflanzlich)",minM:144,minText:"Erst ab 12 Jahren.",caution:{asthma:"Kann bei Asthma Atemwege reizen.",schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache.",niere:"Bei Leberleiden nur nach Rücksprache."},w:"Schleimlösend und entzündungshemmend bei Bronchitis und Nebenhöhlenbeschwerden; nach Packungsbeilage.",relSym:["husten_schleim","nase_verstopft","druck_stirn","schnupfen_eitrig"]},
+ nnh_pf:{pf:1,n:"Pflanzliche Kombination bei Nebenhöhlenbeschwerden (z. B. Enzian, Primel, Holunder)",minM:72,minText:"Erst ab ca. 6 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Nach Packungsbeilage; Tropfen enthalten teils Alkohol.",relSym:["druck_stirn","schnupfen_eitrig","nase_verstopft"]},
+ weide:{pf:1,n:"Weidenrinden-Extrakt (pflanzlich, schmerzlindernd)",minM:216,minText:"Nur für Erwachsene (Salicin wie ASS).",avoid:{magen:"Bei Magen-/Darmgeschwür nicht geeignet.",blutverd:"Mit Blutverdünnern nicht kombinieren.",schwanger:"In der Schwangerschaft nicht anwenden.",stillen:"In der Stillzeit nur nach Rücksprache."},caution:{asthma:"Kann bei NSAR-empfindlichem Asthma Anfälle auslösen."},w:"Bei Kopf-, Rücken- und Gelenkschmerzen, Wirkungseintritt langsamer; nach Packungsbeilage.",relSym:["kopfschmerz","gliederschmerz","ruecken","gelenk","verspannung"]},
+ pfefferminz_kaps:{pf:1,n:"Pfefferminzöl-/Kümmelöl-Kapseln (pflanzlich)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},cautionSym:[["sodbrennen","Kann Sodbrennen verstärken."]],w:"Krampflösend bei Blähungen und Reizdarmbeschwerden; magensaftresistente Kapseln nach Packungsbeilage.",relSym:["blaehungen","bauchkraempfe","bauchschmerz"]},
+ salbei_myrrhe:{pf:1,n:"Salbei-/Myrrhe-Tinktur oder -Spray (pflanzlich, Mund/Rachen)",minM:72,minText:"Erst ab ca. 6 Jahren.",caution:{korbbl:"Kamillehaltige Präparate meiden – Salbei/Myrrhe wählen.",schwanger:"Nur nach Rücksprache.",stillen:"Salbei kann die Milchmenge verringern."},w:"Nach Packungsbeilage verdünnt spülen oder aufpinseln; enthält teils Alkohol.",relSym:["aphthen","zahnfleisch","halsschmerz"]},
+ lavendel_pf:{pf:1,n:"Lavendelöl-Kapseln (pflanzlich, bei Unruhe/Schlafproblemen)",minM:216,minText:"Nur für Erwachsene.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Nach Packungsbeilage; Wirkung setzt nach mehreren Tagen ein.",relSym:["unruhe","stress","einschlaf","durchschlaf"]},
+ kapuzinerkresse:{pf:1,n:"Kapuzinerkresse-/Meerrettich-Präparat (pflanzlich, Harnwege)",minM:216,minText:"Nur für Erwachsene.",caution:{magen:"Kann den Magen reizen.",schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Unterstützt die Behandlung unkomplizierter Blasenentzündungen; viel trinken. Bei Fieber, Flankenschmerz oder Blut im Urin ärztlich abklären.",relSym:["brennen","harndrang"]},
+ melisse_creme:{pf:1,n:"Melissenblätter-Extrakt-Creme (pflanzlich, Lippenherpes)",minM:144,minText:"Erst ab 12 Jahren.",w:"Früh bei Kribbeln mehrmals täglich dünn auftragen.",relSym:["lippenblaeschen"]},
+ beinwell:{pf:1,n:"Beinwell-Salbe (pflanzlich, Prellung)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{schwanger:"In der Schwangerschaft nicht anwenden.",stillen:"In der Stillzeit nicht anwenden."},w:"Nur auf intakter Haut, nicht auf offene Wunden, max. 4 Wochen pro Jahr.",relSym:["prellung","gelenk","ruecken","verspannung"]},
+ hamamelis:{pf:1,n:"Hamamelis-Salbe/-Zäpfchen (pflanzlich, Hämorrhoiden)",minM:144,minText:"Erst ab 12 Jahren.",w:"Nach Packungsbeilage; lindert Juckreiz und Brennen.",relSym:["analbeschwerden"]},
+ dexpanthenol:{n:"Dexpanthenol-Salbe/-Schaum (Hautpflege, Wundheilung)",blockSym:[["blasen","Bei Blasenbildung nicht selbst behandeln – ärztlich zeigen."]],w:"Dünn auf intakte oder oberflächlich verletzte Haut, bei Sonnenbrand/Verbrennung nur 1. Grades (Rötung ohne Blasen) und nach dem Kühlen.",relSym:["hautbrennen","verbrennung","wunde","haut_trocken","windel"]},
+ zink:{n:"Zinkoxid-Paste/-Salbe",w:"Dünn auf gereizte, nässende Haut (Windelbereich, After), schützt vor Feuchtigkeit.",relSym:["windel","analbeschwerden","wunde"]},
+ aciclovir:{n:"Aciclovir-Creme (Lippenherpes)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Möglichst früh (bei Kribbeln) und regelmäßig nach Packungsbeilage; nicht ins Auge.",relSym:["lippenblaeschen"]},
+ wunddesinfektion:{n:"Wunddesinfektionsmittel (z. B. Octenidin)",minM:12,minText:"Unter 1 Jahr ärztlich/apothekerlich beraten lassen.",caution:{schwanger:"Kein Povidon-Jod in Schwangerschaft/Stillzeit – Octenidin bevorzugen.",stillen:"Kein Povidon-Jod in Schwangerschaft/Stillzeit – Octenidin bevorzugen."},w:"Nur kleine Wunden, nach Reinigung kurz anwenden; nicht dauerhaft.",relSym:["wunde"]},
+ hydrocortison:{n:"Hydrocortison 0,5 % Creme (Juckreiz/Ekzem, kurzzeitig)",minM:72,minText:"Unter 6 Jahren nur nach ärztlicher Anweisung.",caution:{schwanger:"Nur nach Rücksprache."},blockSym:[["fieber","Bei Ausschlag mit Fieber (z. B. Windpocken) nicht anwenden."],["hohes_fieber","Bei Ausschlag mit Fieber nicht anwenden."],["lippenblaeschen","Nicht bei Herpes anwenden."],["wunde","Nicht auf offene Wunden."]],w:"Dünn auftragen, max. ca. 1–2 Wochen, nicht im Gesicht/Intimbereich ohne Rat, nicht auf Pilz- oder Infekthaut.",relSym:["juckreiz","hautausschlag"]},
+ basiscreme:{n:"Rückfettende Basiscreme (ggf. mit Harnstoff)",ageNotes:[{maxM:12,t:"Bei Säuglingen harnstofffreie Basiscreme wählen."}],w:"Täglich 1–2-mal auf trockene Haut, direkt nach dem Duschen.",relSym:["haut_trocken","juckreiz"]},
+ dimeticon:{n:"Dimeticon-Läusemittel",minM:12,minText:"Unter 1 Jahr nur nach ärztlicher Rücksprache.",w:"Nach Packungsbeilage einwirken lassen und auskämmen; nach 8–10 Tagen wiederholen. Kita/Schule informieren.",relSym:["laeuse"]},
+ clotrimazol:{n:"Antipilzmittel-Creme (z. B. Clotrimazol)",minM:144,minText:"Bei Kindern ärztlich abklären.",caution:{schwanger:"Nur nach Rücksprache."},w:"Nach Packungsbeilage; auch ca. 2 Wochen nach Abheilen weiter anwenden.",relSym:["fuss_juckt"]},
+ benzoylperoxid:{n:"Benzoylperoxid- oder Salicylsäure-Gel (Akne)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Dünn punktuell auftragen; kann Haut austrocknen und Textilien bleichen; Sonnenschutz.",relSym:["pickel"]},
+ dimenhydrinat:{n:"Dimenhydrinat (Reisekrankheit)",minM:72,minText:"Unter 6 Jahren nur nach ärztlicher Anweisung.",dose:true,caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},senior:"Ab 65 Jahren erhöhtes Risiko für Verwirrtheit und Stürze.",w:"Etwa 30–60 Minuten vor Reisebeginn; macht müde – nicht selbst Auto fahren, kein Alkohol.",relSym:["reiseuebelkeit"]},
+ magnesium:{n:"Magnesium (ergänzend bei Wadenkrämpfen)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{niere:"Bei Nierenerkrankung nicht geeignet."},w:"Nach Packungsbeilage; Wirkung bei Krämpfen wissenschaftlich begrenzt belegt; Durchfall möglich.",relSym:["krampf"]},
+ haemo:{n:"Hämorrhoidensalbe/-zäpfchen (z. B. mit Zinkoxid)",minM:216,minText:"Nur für Erwachsene.",caution:{schwanger:"Nur nach Rücksprache."},w:"Nach Packungsbeilage, kurzzeitig; bei Blutungen ärztlich abklären lassen.",relSym:["analbeschwerden"]},
+ heparin:{n:"Heparin-Gel (Prellung, Bluterguss)",minM:144,minText:"Erst ab 12 Jahren.",caution:{blutverd:"Mit Blutverdünnern nur nach Rücksprache."},w:"Auf intakte Haut dünn auftragen, nicht auf offene Wunden.",relSym:["prellung"]},
+ cerumen:{n:"Ohrenschmalz-lösende Tropfen (Cerumenolytikum)",minM:72,minText:"Bei kleinen Kindern ärztlich entfernen lassen.",blockSym:[["ohrenschmerz","Bei Ohrenschmerzen/Ausfluss (möglicher Trommelfellschaden) nicht anwenden."],["fieber","Bei Fieber nicht anwenden – ärztlich abklären."]],w:"Nach Packungsbeilage einträufeln, nur bei bekanntem intaktem Trommelfell.",relSym:["hoerminderung"]},
+ chlorhexidin:{n:"Antiseptische Mundspüllösung (z. B. Chlorhexidin)",minM:144,minText:"Erst ab 12 Jahren.",w:"Kurzzeitig (max. 1–2 Wochen) nach Packungsbeilage; kann Zähne verfärben.",relSym:["aphthen","zahnfleisch"]}
 };
 
 /* Krankheitsbilder */
 const COND=[
  {id:"erkaeltung",n:"Erkältung (grippaler Infekt)",ernst:0,kurz:"Harmlose virale Infektion der oberen Atemwege. Dauert meist 7–10 Tage.",
   s:[["schnupfen_klar",3],["nase_verstopft",2],["halsschmerz",2],["niesen",2],["husten_trocken",1],["husten_schleim",1],["heiserkeit",1],["kopfschmerz",1],["fieber",1],["muedigkeit",1],["gliederschmerz",1]],neg:["hohes_fieber","ploetzlich"],
-  rem:["trinken","ruhe","nasenspuel","suppe","luftfeucht","dampfdusche","honig","thymian","salbei","wadenwickel"],med:["paracetamol","ibuprofen","xylo","lutsch"],
+  rem:["trinken","ruhe","nasenspuel","suppe","luftfeucht","dampfdusche","honig","thymian","salbei","wadenwickel"],med:["paracetamol","ibuprofen","xylo","lutsch","pelargonium","cineol"],
   arzt:["Fieber > 3 Tage oder > 39,5 °C","Beschwerden > 10 Tage oder erneute Verschlechterung","Atemnot, Ohren- oder starke Halsschmerzen","Säuglinge und Kleinkinder früh vorstellen"]},
  {id:"grippe",n:"Echte Grippe (Influenza)",ernst:0,kurz:"Beginnt plötzlich mit hohem Fieber und starkem Krankheitsgefühl; schwerer als eine Erkältung.",
   s:[["ploetzlich",3],["hohes_fieber",3],["fieber",2],["gliederschmerz",3],["schuettelfrost",2],["muedigkeit",2],["husten_trocken",2],["kopfschmerz",2],["halsschmerz",1],["appetitlos",1]],neg:["schnupfen_eitrig"],
@@ -422,7 +509,7 @@ const COND=[
   arzt:["Risikogruppen (ab 60, Schwangere, Chronisch Kranke, Säuglinge) frühzeitig – antivirale Medikamente wirken nur früh","Atemnot oder Brustschmerz","Fieber > 3 Tage"]},
  {id:"racheninfekt",n:"Rachenentzündung (meist viral)",ernst:0,kurz:"Entzündete Rachenschleimhaut mit Halsschmerz, oft Begleiter einer Erkältung.",
   s:[["halsschmerz",3],["schluckbeschw",3],["heiserkeit",2],["lymph",1],["fieber",1],["husten_trocken",1]],neg:["belaege"],
-  rem:["salbei","gurgeln","honig","kuehlhals","halswickel","eibisch","trinken"],med:["lutsch","paracetamol","ibuprofen"],
+  rem:["salbei","gurgeln","honig","kuehlhals","halswickel","eibisch","trinken"],med:["lutsch","paracetamol","ibuprofen","salbei_myrrhe"],
   arzt:["Trinken/Schlucken kaum möglich oder Speichelfluss","Beläge auf den Mandeln, Fieber > 3 Tage","Heiserkeit > 2 Wochen"]},
  {id:"angina",n:"Mandelentzündung (Angina, ggf. Streptokokken)",ernst:1,kurz:"Oft bakteriell; Mandeln gerötet mit Belägen, Fieber. Streptokokken benötigen ärztliche Abklärung und ggf. Antibiotika.",
   s:[["halsschmerz",3],["schluckbeschw",3],["belaege",3],["fieber",2],["hohes_fieber",1],["lymph",2]],neg:["husten_trocken","schnupfen_klar"],
@@ -430,7 +517,7 @@ const COND=[
   arzt:["Bei Belägen/Fieber: ärztlicher Abstrich","Ansteckend – bei Kindern Praxis vorher anrufen","Kehlkopf-/Atemnot oder Kloßgefühl sofort"],arztImmer:"Hausmittel lindern nur – eine bakterielle Angina muss ärztlich untersucht werden."},
  {id:"bronchitis",n:"Akute Bronchitis",ernst:0,kurz:"Entzündung der Bronchien nach viralem Infekt; Husten kann 2–3 Wochen anhalten.",
   s:[["husten_schleim",3],["husten_trocken",2],["auswurf",2],["pfeifend",1],["fieber",1],["muedigkeit",1],["heiserkeit",1]],neg:[],
-  rem:["trinken","dampfdusche","inhal_salz","thymian","spitzwegerich","honig","zwiebelsirup","suppe","hochlagern","eibisch"],med:["hustenloeser","hustenstiller","paracetamol","ibuprofen"],
+  rem:["trinken","dampfdusche","inhal_salz","thymian","spitzwegerich","honig","zwiebelsirup","suppe","hochlagern","eibisch"],med:["hustenloeser","hustenstiller","paracetamol","ibuprofen","pelargonium","efeu","cineol"],
   arzt:["Husten > 3 Wochen","Atemnot, Brustschmerz, Blut im Auswurf","Hohes Fieber > 3 Tage, Verschlechterung","Husten bei Säuglingen/Kleinkindern früh vorstellen"],
   arztWenn:{maxAgeM:24,t:"Husten bei Kindern unter 2 Jahren bitte ärztlich abklären lassen."}},
  {id:"pneumonie",n:"Lungenentzündung (Verdacht)",ernst:2,kurz:"Ernste Infektion des Lungengewebes – nicht mit Hausmitteln zu behandeln.",
@@ -439,7 +526,7 @@ const COND=[
   arzt:["Bei Verdacht sofort ärztlich abklären (Röntgen, Antibiotika)","Atemnot → Notruf 112"],arztImmer:"Hausmittel ersetzen keine Behandlung – bitte zeitnah zum Arzt."},
  {id:"sinusitis",n:"Nasennebenhöhlenentzündung",ernst:0,kurz:"Entzündung der Nebenhöhlen, meist nach Erkältung; Druck im Gesicht, zäher Schnupfen.",
   s:[["druck_stirn",3],["schnupfen_eitrig",3],["nase_verstopft",2],["kopfschmerz",2],["fieber",1],["geruchsverlust",1]],neg:[],
-  rem:["nasenspuel","inhal_salz","dampfdusche","trinken","luftfeucht","kuehl"],med:["xylo","paracetamol","ibuprofen"],
+  rem:["nasenspuel","inhal_salz","dampfdusche","trinken","luftfeucht","kuehl"],med:["xylo","paracetamol","ibuprofen","nnh_pf","cineol"],
   arzt:["Beschwerden > 10 Tage","Starke einseitige Schmerzen, Fieber","Schwellung/Rötung um Auge → sofort"]},
  {id:"heuschnupfen",n:"Heuschnupfen / allergischer Schnupfen",ernst:0,kurz:"Allergische Reaktion auf Pollen, Hausstaub oder Tierhaare; kein Fieber.",
   s:[["niesen",3],["schnupfen_klar",3],["augen_juckend",3],["nase_verstopft",1],["juckreiz",1]],neg:["fieber","hohes_fieber","gliederschmerz"],
@@ -465,19 +552,19 @@ const COND=[
   arzt:["Beschwerden > 2 Wochen oder nächtlich","Schluckbeschwerden, Erbrechen von Blut, schwarzer Stuhl","Ungewollter Gewichtsverlust"]},
  {id:"blaehungen",n:"Blähungen / Verdauungsbeschwerden",ernst:0,kurz:"Gasansammlung im Darm, z. B. durch Essen, Luftschlucken; bei Babys auch „Dreimonatskoliken“.",
   s:[["blaehungen",3],["bauchkraempfe",2],["bauchschmerz",1],["verstopfung",1],["aufstossen",1],["quengelig",1]],neg:["fieber"],
-  rem:["fenchel","pfefferminztee","bauchmassage","bauchwaerme","bewegung"],med:["simeticon"],
+  rem:["fenchel","pfefferminztee","bauchmassage","bauchwaerme","bewegung"],med:["simeticon","pfefferminz_kaps"],
   arzt:["Starke, anhaltende Schmerzen oder Erbrechen","Baby: kaum Trinken/Gedeihen, Blut im Stuhl, Fieber"]},
  {id:"spannungskopf",n:"Spannungskopfschmerz",ernst:0,kurz:"Dumpfer, beidseitiger Druckkopfschmerz, oft mit Verspannung, Stress oder zu wenig Trinken.",
   s:[["kopfschmerz",3],["verspannung",1],["stress",2],["muedigkeit",1]],neg:["kopf_einseitig","lichtempfindlich"],
-  rem:["trinken","pfefferminzoel","kuehl","entspannung","bewegung","dunkel"],med:["paracetamol","ibuprofen","ass"],
+  rem:["trinken","pfefferminzoel","kuehl","entspannung","bewegung","dunkel"],med:["paracetamol","ibuprofen","ass","weide"],
   arzt:["Neuer, plötzlicher, „stärkster“ Kopfschmerz","Mit Fieber, Nackensteife, Lähmungen, Sehstörungen","Schmerzmittel an mehr als 10 Tagen/Monat"]},
  {id:"migraene",n:"Migräne",ernst:0,kurz:"Anfallsartig, meist einseitig pochend, mit Übelkeit sowie Licht-/Lärmempfindlichkeit.",
   s:[["kopf_einseitig",3],["lichtempfindlich",3],["uebelkeit",2],["erbrechen",1],["schwindel",1]],neg:[],
-  rem:["dunkel","kuehl","pfefferminzoel","ingwer","trinken"],med:["ibuprofen","paracetamol"],
+  rem:["dunkel","kuehl","pfefferminzoel","ingwer","trinken"],med:["ibuprofen","paracetamol","weide"],
   arzt:["Erstmalige Migräne","Aura (Seh-/Gefühlsstörungen) neu oder verändert","Anfälle häufiger als 3 Mal pro Monat"]},
  {id:"blase",n:"Blasenentzündung",ernst:0,kurz:"Meist bakteriell; Brennen beim Wasserlassen, häufiger Harndrang in kleinen Mengen.",
   s:[["brennen",3],["harndrang",3],["bauchschmerz",1],["blut_urin",1]],neg:["flanken","hohes_fieber"],
-  rem:["trinken","blasentee","blasenwaerme","cranberry"],med:["ibuprofen"],
+  rem:["trinken","blasentee","blasenwaerme","cranberry"],med:["ibuprofen","kapuzinerkresse"],
   arzt:["Kinder, Jugendliche, Männer und Schwangere immer","Fieber, Flankenschmerz, Blut im Urin","Keine Besserung nach 2–3 Tagen oder wiederkehrend"],
   arztWenn:{maxAgeM:216,flags:["schwanger"],t:"Harnwegsbeschwerden bei Kindern/Jugendlichen und in der Schwangerschaft immer ärztlich abklären."}},
  {id:"niere",n:"Nierenbecken-/Harnwegsinfekt mit Nierenbeteiligung",ernst:2,kurz:"Aufsteigender Harnwegsinfekt – braucht ärztliche Behandlung.",
@@ -490,7 +577,7 @@ const COND=[
   arztWenn:{maxAgeM:12,t:"Augenentzündungen bei Säuglingen bitte ärztlich abklären lassen."}},
  {id:"ruecken",n:"Rücken- / Muskelverspannung",ernst:0,kurz:"Meist unspezifische Verspannung durch Haltung, Belastung oder Stress.",
   s:[["ruecken",3],["verspannung",3],["gelenk",1],["stress",1]],neg:["fieber","hohes_fieber"],
-  rem:["waermeruecken","bewegung","arnika","entspannung"],med:["schmerzgel","paracetamol","ibuprofen"],
+  rem:["waermeruecken","bewegung","arnika","entspannung"],med:["schmerzgel","paracetamol","ibuprofen","weide","beinwell"],
   arzt:["Taubheit, Lähmung, Blasen-/Darmstörung → sofort","Nach Sturz/Unfall, mit Fieber","Länger als 4–6 Wochen"]},
  {id:"schlaf",n:"Schlafstörung",ernst:0,kurz:"Ein- und/oder Durchschlafprobleme, oft durch Stress, Rhythmus oder Koffein.",
   s:[["einschlaf",3],["durchschlaf",3],["unruhe",2],["stress",2],["muedigkeit",1]],neg:["fieber"],
@@ -503,15 +590,15 @@ const COND=[
   tipp:"Keine Bernsteinketten (Erstickungs-/Strangulationsgefahr) und keine betäubenden Zahnungsgele ohne ärztlichen Rat."},
  {id:"zahnweh",n:"Zahnschmerzen / Zahnfleischentzündung",ernst:0,kurz:"Meist durch Karies, Entzündung oder Zahnfleischprobleme – braucht Zahnärztin/Zahnarzt.",
   s:[["zahnschmerz",3],["zahnfleisch",2],["schwellung",1],["fieber",1],["kopfschmerz",1]],neg:[],
-  rem:["zahnkuehl","gurgeln","nelke"],med:["paracetamol","ibuprofen"],
+  rem:["zahnkuehl","gurgeln","nelke"],med:["paracetamol","ibuprofen","salbei_myrrhe","chlorhexidin"],
   arzt:["Zahnarzt zeitnah – Hausmittel nur zur Überbrückung","Gesichtsschwellung, Fieber, Schluckbeschwerden → sofort"]},
  {id:"stich",n:"Insektenstich / leichte Hautreizung",ernst:0,kurz:"Lokale Reaktion mit Schwellung, Juckreiz und Rötung.",
   s:[["schwellung",3],["juckreiz",3],["hautroetung",2],["hautausschlag",1]],neg:["fieber"],
-  rem:["stichkuehl","nichtkratzen","hautkuehl"],med:["stichgel","antihist"],
+  rem:["stichkuehl","nichtkratzen","hautkuehl"],med:["stichgel","antihist","hydrocortison"],
   arzt:["Stich im Mund/Rachen oder Schwellung von Gesicht/Zunge, Atemnot → 112","Sich ausbreitende Rötung mit Fieber","Bekannte Insektengift-Allergie"]},
  {id:"hautallergie",n:"Allergische Hautreaktion / unklarer Ausschlag",ernst:0,kurz:"Rötung, Quaddeln oder Ausschlag mit Juckreiz, z. B. durch Pflegeprodukte, Nahrung oder Pflanzen.",
   s:[["hautausschlag",3],["juckreiz",3],["hautroetung",1],["schwellung",1]],neg:["fieber"],
-  rem:["hautkuehl","nichtkratzen","stichkuehl"],med:["antihist","stichgel"],
+  rem:["hautkuehl","nichtkratzen","stichkuehl"],med:["antihist","stichgel","hydrocortison"],
   arzt:["Atemnot, Schwellung von Lippen/Zunge → 112","Ausschlag mit Fieber oder rasch fortschreitend","Länger als 1 Woche"]},
  {id:"kinderausschlag",n:"Kinderkrankheit mit Ausschlag (z. B. Windpocken, Scharlach, Masern)",ernst:1,kurz:"Ansteckende Infektionen mit Fieber und Ausschlag – ärztlich abklären (Praxis vorher anrufen).",
   s:[["hautausschlag",3],["fieber",2],["hohes_fieber",1],["juckreiz",1],["muedigkeit",1]],neg:[],maxAgeM:216,minMatch:2,
@@ -525,7 +612,119 @@ const COND=[
   rem:[],med:[],arzt:["Sofort Notruf 112 / Notaufnahme"],arztImmer:"Keine Zeit mit Hausmitteln verlieren – sofort 112 / Notaufnahme."},
  {id:"blinddarm",n:"Blinddarmentzündung (Verdacht)",ernst:2,kurz:"Wandernder Bauchschmerz, der rechts unten bleibt – muss rasch ärztlich abgeklärt werden.",
   s:[["bauch_rechts_unten",3],["appetitlos",2],["uebelkeit",1],["erbrechen",1],["fieber",1]],neg:["durchfall"],minMatch:1,
-  rem:[],med:[],arzt:["Notaufnahme/112 – nichts essen, keine Wärme, keine Schmerzmittel einnehmen vor Abklärung"],arztImmer:"Sofort ärztlich/Notaufnahme – keine Hausmittel."}
+  rem:[],med:[],arzt:["Notaufnahme/112 – nichts essen, keine Wärme, keine Schmerzmittel einnehmen vor Abklärung"],arztImmer:"Sofort ärztlich/Notaufnahme – keine Hausmittel."},
+ {id:"fieber_u",n:"Fieber (ohne klare Ursache)",ernst:0,kurz:"Fieber ist eine Abwehrreaktion des Körpers, kein eigenes Leiden. Die Ursache sollte beobachtet werden.",
+  s:[["fieber",3],["hohes_fieber",2],["schuettelfrost",1],["muedigkeit",1],["gliederschmerz",1],["kopfschmerz",1],["appetitlos",1]],neg:[],
+  rem:["trinken","wadenwickel","ruhe","suppe","kuehl"],med:["paracetamol","ibuprofen"],
+  arzt:["Säuglinge unter 3 Monaten sofort","Fieber > 3 Tage oder ≥ 39,5 °C","Nackensteife, Atemnot, Hautausschlag, Verwirrtheit","Kinder mit Trinkverweigerung oder Apathie"],
+  arztWenn:{maxAgeM:6,t:"Fieber bei Säuglingen unter 6 Monaten immer ärztlich abklären lassen."}},
+ {id:"kehlkopf",n:"Kehlkopfentzündung (Laryngitis)",ernst:0,kurz:"Gereizte Stimmlippen mit Heiserkeit, oft nach Erkältung oder Überlastung der Stimme.",
+  s:[["heiserkeit",3],["husten_trocken",2],["halsschmerz",1],["schluckbeschw",1]],neg:["bellender"],
+  rem:["stimme","trinken","islaendisch","inhal_salz","luftfeucht","salbei","honig"],med:["lutsch"],
+  arzt:["Heiserkeit > 2 Wochen (v. a. bei Rauchern)","Atemnot oder Schluckbeschwerden","Kinder mit bellendem Husten sofort"]},
+ {id:"gastritis",n:"Magenschleimhautreizung (Gastritis)",ernst:0,kurz:"Gereizte Magenschleimhaut durch Stress, Alkohol, Schmerzmittel oder Infekt.",
+  s:[["bauchschmerz",3],["uebelkeit",2],["sodbrennen",2],["aufstossen",1],["appetitlos",1],["blaehungen",1]],neg:["durchfall","fieber"],
+  rem:["kamille","leinsamenschleim","schonkost","bauchwaerme","sod","hochlagern"],med:["pfefferminz_kaps","antazida"],
+  arzt:["Beschwerden > 1–2 Wochen","Erbrechen von Blut oder schwarzer Stuhl → sofort","Regelmäßige Einnahme von Schmerzmitteln (Ibuprofen/ASS)","Ungewollter Gewichtsverlust"]},
+ {id:"reisekrank",n:"Reisekrankheit",ernst:0,kurz:"Übelkeit durch widersprüchliche Sinnesreize bei Auto-, Schiffs- oder Flugreisen.",
+  s:[["reiseuebelkeit",3],["uebelkeit",2],["schwindel",2],["erbrechen",1],["starkes_schwitzen",1],["kopfschmerz",1]],neg:["fieber"],
+  rem:["reise_luft","ingwer","trinken"],med:["dimenhydrinat"],
+  arzt:["Anhaltende Beschwerden nach der Reise","Schwindel ohne Bewegungsauslöser"]},
+ {id:"haemorrhoiden",n:"Hämorrhoiden / Analbeschwerden",ernst:0,kurz:"Gereizte oder vergrößerte Gefäßpolster am After mit Jucken, Brennen oder Schmerz.",
+  s:[["analbeschwerden",3],["verstopfung",1]],neg:[],minAgeM:144,
+  rem:["sitzbad","analpflege","ballast","trinken"],med:["hamamelis","zink","haemo"],
+  arzt:["Blut im Stuhl immer (erstmalig) abklären lassen","Starke Schmerzen, Knoten die nicht zurückgehen","Keine Besserung nach 1 Woche"]},
+ {id:"aphthen",n:"Aphthen / Mundschleimhautentzündung",ernst:0,kurz:"Kleine schmerzhafte Läsionen der Mundschleimhaut, heilen meist in 1–2 Wochen.",
+  s:[["aphthen",3],["zahnfleisch",1]],neg:[],
+  rem:["mundspuel","mundschonen"],med:["salbei_myrrhe","chlorhexidin"],
+  arzt:["Länger als 2 Wochen oder sehr häufig","Fieber, Trinkverweigerung bei Kindern (z. B. Hand-Fuß-Mund)","Mundschleimhaut mit weißen Belägen"]},
+ {id:"herpes",n:"Lippenherpes",ernst:0,kurz:"Virusbedingte Bläschen an der Lippe, beginnen mit Kribbeln und Spannen.",
+  s:[["lippenblaeschen",3],["juckreiz",1],["hautroetung",1]],neg:[],
+  rem:["herpes_hyg","stichkuehl"],med:["melisse_creme","aciclovir"],
+  arzt:["Bläschen in Augennähe → sofort","Neugeborene, Schwangere, geschwächtes Immunsystem","Sehr häufige Schübe oder Heilung > 2 Wochen"]},
+ {id:"sonnenbrand",n:"Sonnenbrand",ernst:0,kurz:"Hautverbrennung durch UV-Strahlung mit Rötung und Brennen, oft nach 4–6 Stunden sichtbar.",
+  s:[["hautbrennen",3],["hautroetung",2],["blasen",1],["schwellung",1],["kopfschmerz",1],["fieber",1]],neg:[],
+  rem:["sonne_meiden","aloe","stichkuehl","trinken"],med:["dexpanthenol","ibuprofen","paracetamol"],
+  arzt:["Großflächige Blasen","Fieber, Schüttelfrost, Übelkeit (Sonnenstich)","Säuglinge und Kleinkinder immer"],
+  arztWenn:{maxAgeM:12,t:"Sonnenbrand bei Säuglingen bitte ärztlich abklären lassen."}},
+ {id:"verbrennung",n:"Leichte Verbrennung / Verbrühung",ernst:0,kurz:"Oberflächliche Hautschädigung durch Hitze: Rötung und Schmerz (1. Grad), ggf. Blasen (2. Grad).",
+  s:[["verbrennung",3],["blasen",2],["hautroetung",1],["schwellung",1]],neg:[],
+  rem:["verbr_kuehlen","aloe"],med:["dexpanthenol","paracetamol","ibuprofen"],
+  arzt:["Blasen, Fläche größer als die Handfläche","Gesicht, Hände, Gelenke, Genitalien","Chemische/elektrische Verbrennung","Kleine Kinder und Säuglinge immer"],
+  arztWenn:{maxAgeM:72,t:"Verbrennungen bei kleinen Kindern bitte immer ärztlich zeigen."}},
+ {id:"wunde",n:"Kleine Schürf- oder Schnittwunde",ernst:0,kurz:"Oberflächliche Hautverletzung, die mit guter Wundpflege meist gut heilt.",
+  s:[["wunde",3],["hautroetung",1],["schwellung",1]],neg:[],
+  rem:["wunde_reinig","ringelblume"],med:["wunddesinfektion","dexpanthenol","zink"],
+  arzt:["Tiefe, klaffende Wunden (Nähen innerhalb ca. 6 Std.)","Bissverletzung, Fremdkörper","Tetanusimpfung älter als 10 Jahre","Zunehmende Rötung, Eiter, Fieber","Blutung stoppt nicht nach 10 Min. Druck"]},
+ {id:"zecke",n:"Zeckenstich",ernst:0,kurz:"Zecken können Borreliose und FSME übertragen – frühes Entfernen senkt das Risiko.",
+  s:[["zecke",3],["hautroetung",1],["fieber",1],["gliederschmerz",1],["kopfschmerz",1]],neg:[],
+  rem:["zecke_entf"],med:[],
+  arzt:["Wachsende Rötung (Wanderröte) in den Wochen danach","Fieber, Kopf-/Gliederschmerz nach Zeckenstich","Teile der Zecke stecken in der Haut","FSME-Impfstatus im Risikogebiet klären"]},
+ {id:"nasenbluten",n:"Nasenbluten",ernst:0,kurz:"Meist harmlos durch trockene Schleimhaut oder Schnäuzen/Nasebohren.",
+  s:[["nasenbluten",3]],neg:[],
+  rem:["nase_vorn","luftfeucht"],med:[],
+  arzt:["Blutung dauert länger als 20 Minuten","Nach Sturz oder Schlag auf den Kopf","Mit Blutverdünnern oder sehr häufig","Hoher Blutdruck bekannt"]},
+ {id:"gerstenkorn",n:"Gerstenkorn / Lidrandentzündung",ernst:0,kurz:"Schmerzhafte, gerötete Schwellung am Augenlid durch verstopfte Drüse.",
+  s:[["lid_schwellung",3],["augen_eitrig",1],["hautroetung",1]],neg:[],
+  rem:["warm_auge","augenhyg"],med:[],
+  arzt:["Keine Besserung nach 1–2 Wochen","Sehstörung, starke Schwellung des ganzen Auges","Fieber oder Ausbreitung auf das Gesicht","Säuglinge/Kleinkinder"]},
+ {id:"gehoergang",n:"Gehörgangsentzündung (Badeohr)",ernst:1,kurz:"Entzündung der Haut im äußeren Gehörgang, oft nach Schwimmen oder Ohrenbohren.",
+  s:[["ohr_zug",3],["ohrenschmerz",2],["juckreiz",1],["hoerminderung",1]],neg:[],
+  rem:["ohr_trocken"],med:["paracetamol","ibuprofen"],
+  arzt:["Wird meist mit Ohrentropfen behandelt","Fieber, Schwellung hinter dem Ohr","Diabetes oder geschwächtes Immunsystem"],arztImmer:"Eine Gehörgangsentzündung braucht meist spezielle Ohrentropfen – bitte ärztlich abklären."},
+ {id:"ohrenschmalz",n:"Ohrenschmalz-Pfropf",ernst:0,kurz:"Verstopfter Gehörgang mit Druckgefühl und gedämpftem Hören, meist ohne Schmerzen.",
+  s:[["hoerminderung",3],["ohr_zug",1]],neg:["ohrenschmerz","fieber"],
+  rem:["ohr_trocken"],med:["cerumen"],
+  arzt:["Plötzlicher Hörverlust → sofort (Hörsturz)","Schmerz, Ausfluss, Schwindel","Kleinkinder: ärztlich entfernen lassen","Bekannte Trommelfellschäden"]},
+ {id:"prellung",n:"Prellung / Verstauchung",ernst:0,kurz:"Weichteilverletzung durch Stoß oder Umknicken mit Schwellung und Bluterguss.",
+  s:[["prellung",3],["schwellung",2],["gelenk",1],["hautroetung",1]],neg:[],
+  rem:["pech","arnika"],med:["beinwell","schmerzgel","heparin","ibuprofen","paracetamol"],
+  arzt:["Fehlstellung, Gelenk nicht belastbar, starke Schmerzen","Taubheit oder Kribbeln","Nach Kopfverletzung","Keine Besserung nach 3–5 Tagen"]},
+ {id:"muskelkrampf",n:"Muskelkrampf (z. B. Wadenkrampf)",ernst:0,kurz:"Plötzliche schmerzhafte Muskelverhärtung, oft nachts, bei Flüssigkeits- oder Elektrolytmangel oder Überlastung.",
+  s:[["krampf",3],["verspannung",1],["starkes_schwitzen",1]],neg:[],
+  rem:["dehnen","trinken","waermeruecken"],med:["magnesium"],
+  arzt:["Einseitig geschwollene, gerötete, schmerzende Wade → sofort (Thrombose möglich)","Häufige Krämpfe, Schwäche","Neu nach Medikamenteneinnahme"]},
+ {id:"gelenk",n:"Gelenkschmerzen (Überlastung / Verschleiß)",ernst:0,kurz:"Belastungsabhängige Gelenkbeschwerden ohne Entzündungszeichen.",
+  s:[["gelenk",3],["verspannung",1],["ruecken",1]],neg:["fieber","hohes_fieber"],
+  rem:["waermeruecken","bewegung","arnika","entspannung"],med:["weide","beinwell","schmerzgel","ibuprofen","paracetamol"],
+  arzt:["Rötung, Überwärmung, starke Schwellung","Fieber","Länger als 2 Wochen","Nach Unfall"],
+  arztWenn:{maxAgeM:216,t:"Gelenkschmerzen bei Kindern und Jugendlichen bitte ärztlich abklären lassen."}},
+ {id:"periode",n:"Menstruationsbeschwerden",ernst:0,kurz:"Krampfartige Unterleibsschmerzen vor oder während der Regelblutung.",
+  s:[["menstruation_schmerz",3],["bauchkraempfe",2],["bauchschmerz",1],["kopfschmerz",1],["uebelkeit",1]],neg:["fieber"],minAgeM:120,
+  rem:["periode_waerme","periode_tee","bewegung","entspannung"],med:["ibuprofen","paracetamol"],
+  arzt:["Sehr starke Blutung oder zunehmende Schmerzen","Fieber, übel riechender Ausfluss","Mögliche Schwangerschaft bei Ausbleiben der Periode","Erstmalig sehr starke Beschwerden bei Jugendlichen"]},
+ {id:"kreislauf",n:"Kreislaufschwäche / niedriger Blutdruck",ernst:0,kurz:"Schwindel und Müdigkeit, besonders beim Aufstehen.",
+  s:[["schwindel",3],["muedigkeit",2],["kopfschmerz",1],["starkes_schwitzen",1],["uebelkeit",1]],neg:[],minAgeM:144,
+  rem:["kreislauf","trinken","wechseldusche","bewegung"],med:[],
+  arzt:["Ohnmacht, Brustschmerz, Herzrasen","Neu aufgetreten oder zunehmend","Mit Einnahme von Blutdruckmedikamenten"]},
+ {id:"hitze",n:"Hitzeerschöpfung / Flüssigkeitsmangel",ernst:0,kurz:"Folge von Hitze, Anstrengung oder zu wenig Trinken: Schwitzen, Schwindel, Kopfschmerz.",
+  s:[["starkes_schwitzen",3],["schwindel",2],["kopfschmerz",2],["uebelkeit",2],["muedigkeit",1],["krampf",1],["dehydration",1]],neg:[],
+  rem:["hitze_kuehl","trinken"],med:["ors"],
+  arzt:["Körpertemperatur > 40 °C, Verwirrtheit oder Bewusstlosigkeit = Hitzschlag → 112","Kinder und Ältere früh","Keine Besserung nach 1 Stunde"]},
+ {id:"stress",n:"Stress / innere Unruhe",ernst:0,kurz:"Anspannung und Nervosität, oft mit Schlaf- und Konzentrationsproblemen.",
+  s:[["unruhe",3],["stress",3],["einschlaf",1],["durchschlaf",1],["schwindel",1],["kopfschmerz",1]],neg:["fieber"],
+  rem:["entspannung","lavendel","melisse","schlafhyg","bewegung"],med:["lavendel_pf"],
+  arzt:["Länger als 2–4 Wochen","Panikattacken, Herzrasen, Brustenge","Niedergeschlagenheit oder Hoffnungslosigkeit"]},
+ {id:"pickel",n:"Unreine Haut / Akne",ernst:0,kurz:"Verstopfte Talgdrüsen mit Pickeln, v. a. in der Pubertät.",
+  s:[["pickel",3],["hautroetung",1]],neg:[],minAgeM:120,
+  rem:["pickel_reinig","teebaum"],med:["benzoylperoxid"],
+  arzt:["Stark entzündliche oder knotige Akne","Narbenbildung","Keine Besserung nach 8–12 Wochen"]},
+ {id:"trockenhaut",n:"Trockene, juckende Haut",ernst:0,kurz:"Gestörte Hautbarriere, oft im Winter oder bei häufigem Waschen; evtl. Neurodermitis.",
+  s:[["haut_trocken",3],["juckreiz",2],["hautroetung",1],["hautausschlag",1]],neg:["fieber"],
+  rem:["haut_pflege","haferbad","hautkuehl","ringelblume"],med:["basiscreme","hydrocortison"],
+  arzt:["Nässende, entzündete oder infizierte Haut","Starker Juckreiz, Schlafstörung","Kinder mit wiederkehrendem Ekzem","Keine Besserung nach 2 Wochen"]},
+ {id:"fusspilz",n:"Fußpilz",ernst:0,kurz:"Pilzinfektion der Haut zwischen den Zehen mit Juckreiz, Rötung und Schuppung.",
+  s:[["fuss_juckt",3],["hautroetung",1],["juckreiz",1],["blasen",1]],neg:[],
+  rem:["fuss_trocken"],med:["clotrimazol"],
+  arzt:["Diabetes oder Durchblutungsstörungen","Nagelbefall","Keine Besserung nach 2 Wochen","Kinder"]},
+ {id:"windel",n:"Wunder Po (Windeldermatitis)",ernst:0,kurz:"Gereizte Haut im Windelbereich durch Feuchtigkeit und Reibung.",
+  s:[["windel",3],["hautroetung",2],["juckreiz",1]],neg:[],maxAgeM:48,
+  rem:["windel_luft","ringelblume"],med:["zink","dexpanthenol"],
+  arzt:["Bläschen, Pusteln oder nässende Stellen (Pilz?)","Keine Besserung nach 3–5 Tagen","Fieber oder starke Schmerzen"]},
+ {id:"laeuse",n:"Kopfläuse",ernst:0,kurz:"Ansteckender, aber harmloser Befall der Kopfhaut mit Juckreiz.",
+  s:[["laeuse",3],["juckreiz",1]],neg:[],maxAgeM:216,
+  rem:["laeuse_kamm"],med:["dimeticon"],
+  arzt:["Kopfhaut entzündet oder eitrig","Säuglinge unter 1 Jahr","Kita/Schule informieren, Wiederzulassung nach Behandlung"]}
 ];
 
 /* ============================================================
@@ -679,9 +878,9 @@ function saveProfile(){
 
 /* ---------- Symptome ---------- */
 function visibleSyms(){
-  const p=prof();const isChild=p&&p.type==="child";
+  const p=prof();const isChild=p&&p.type==="child";const am=ageM(p);
   const q=S.filter.trim().toLowerCase();
-  return Object.values(SYM).filter(s=>(!s.kids||isChild)&&(!q||s.label.toLowerCase().includes(q)));
+  return Object.values(SYM).filter(s=>(!s.kids||isChild)&&(!s.minAgeM||am==null||am>=s.minAgeM)&&(!q||s.label.toLowerCase().includes(q)));
 }
 function renderSymptoms(){
   const syms=visibleSyms();const q=S.filter.trim()!=="";
@@ -706,7 +905,7 @@ function renderSelected(){
 /* ---------- Ergebnis ---------- */
 function itemHTML(id,it,r,isMed){
   const cls=r.status;
-  let h=`<div class="item ${cls}"><b>${isMed?"💊 ":""}${esc(it.n)}</b>`;
+  let h=`<div class="item ${cls}"><b>${isMed?(it.pf?"🌿 ":"💊 "):""}${esc(it.n)}${it.pf?' <span class="tag green">pflanzlich</span>':""}</b>`;
   if(it.w)h+=`<div class="w">${esc(it.w)}</div>`;
   if(it.e&&!isMed)h+=`<div class="n">Wirkung: ${esc(it.e)}</div>`;
   r.block.forEach(t=>h+=`<div class="n stop">⛔ ${esc(t)}</div>`);
@@ -735,10 +934,10 @@ function condHTML(res,rank,p,sel){
   else if(c.rem.length===0)body+=`<h3>🌿 Hausmittel</h3><div class="muted">Keine Hausmittel – bitte ärztlich abklären.</div>`;
   // Medikamente
   const meds=c.med.map(id=>({id,it:MED[id]})).filter(x=>x.it&&relevant(x.it,sel)).map(x=>({...x,r:evalItem(x.it,p,sel)}));
-  const mOk=meds.filter(x=>x.r.status!=="blocked"),mNo=meds.filter(x=>x.r.status==="blocked");
+  const mOk=meds.filter(x=>x.r.status!=="blocked").sort((a,b)=>(b.it.pf?1:0)-(a.it.pf?1:0)),mNo=meds.filter(x=>x.r.status==="blocked");
   if(mOk.length){
-    body+=`<h3>💊 Rezeptfreie Wirkstoffe (ohne Dosisangabe)</h3>`+mOk.map(x=>itemHTML(x.id,x.it,x.r,true)).join("");
-    body+=`<div class="tab-note">Dosierung, Anwendungsdauer und Gegenanzeigen immer der Packungsbeilage entnehmen bzw. in der Apotheke erfragen.</div>`;
+    body+=`<h3>💊 Rezeptfreie Medikamente (pflanzliche zuerst, ohne Dosisangabe)</h3>`+mOk.map(x=>itemHTML(x.id,x.it,x.r,true)).join("");
+    body+=`<div class="tab-note">Hausmittel und pflanzliche Mittel werden bevorzugt. Dosierung, Anwendungsdauer und Gegenanzeigen immer der Packungsbeilage entnehmen bzw. in der Apotheke erfragen.</div>`;
   }
   const no=[...rNo.map(x=>({...x,m:false})),...mNo.map(x=>({...x,m:true}))];
   if(no.length)body+=`<details style="margin-top:.6rem"><summary class="tab-note" style="cursor:pointer">Für dieses Profil nicht geeignet (${no.length})</summary>${no.map(x=>itemHTML(x.id,x.it,x.r,x.m)).join("")}</details>`;
@@ -914,6 +1113,7 @@ function init(){
   },true);
   $("fMinus").onclick=()=>{S.fs=Math.max(.8,+(S.fs-.1).toFixed(2));applyFont();save();};
   $("fPlus").onclick=()=>{S.fs=Math.min(1.6,+(S.fs+.1).toFixed(2));applyFont();save();};
+  $("btnUpd").onclick=()=>checkUpdate(true);
   $("btnInfo").onclick=()=>$("dlgDisc").showModal();
   $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
   $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
@@ -926,6 +1126,47 @@ function init(){
   $("aiExtract").onclick=aiExtract;$("aiAssess").onclick=aiAssess;$("aiAsk").onclick=aiAsk;
   if(!S.disc)$("dlgDisc").showModal();else if(!S.profiles.length)openProfileDialog();
   setupPWA();
+  setTimeout(()=>checkUpdate(false),1500);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate(false);});
+}
+/* ---------- Update-Prüfung (liest die Version der auf GitHub Pages veröffentlichten index.html) ---------- */
+function cmpVer(a,b){const x=a.split(".").map(Number),y=b.split(".").map(Number);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
+async function fetchRemoteVersion(){
+  const url=new URL("index.html",location.href);url.searchParams.set("_",Date.now());
+  const r=await fetch(url.href,{cache:"no-store"});
+  if(!r.ok)throw new Error("Server antwortet mit "+r.status);
+  const m=(await r.text()).match(/const APP_VERSION="(\d+(?:\.\d+){1,2})"/);
+  if(!m)throw new Error("Version in der Online-Datei nicht gefunden");
+  return m[1];
+}
+async function applyUpdate(){
+  const bar=$("updBar");bar.className="upd";bar.innerHTML='<span><span class="spin"></span>Aktualisiere …</span>';
+  try{
+    if("serviceWorker" in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()));}
+    if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));}
+  }catch(e){}
+  location.replace(location.pathname+"?v="+Date.now());
+}
+async function checkUpdate(manual){
+  const bar=$("updBar"),btn=$("btnUpd");
+  if(!navigator.onLine){if(manual){bar.hidden=false;bar.className="upd err";bar.innerHTML="<span>Offline – Update-Prüfung nicht möglich.</span>";}return;}
+  if(manual){btn.disabled=true;bar.hidden=false;bar.className="upd";bar.innerHTML='<span><span class="spin"></span>Prüfe auf neue Version …</span>';}
+  try{
+    const remote=await fetchRemoteVersion();
+    try{localStorage.setItem(STORE_KEY+"-chk",new Date().toISOString());}catch(e){}
+    if(cmpVer(remote,APP_VERSION)>0){
+      bar.hidden=false;bar.className="upd new";
+      bar.innerHTML='<span>🆕 Neue Version <b>'+esc(remote)+'</b> verfügbar (installiert: '+esc(APP_VERSION)+'). Profile und Einstellungen bleiben erhalten.</span><button class="btn" id="btnApply">Jetzt aktualisieren</button>';
+      $("btnApply").onclick=applyUpdate;
+    }else if(manual){
+      bar.hidden=false;bar.className="upd";
+      bar.innerHTML='<span>✓ Du nutzt die aktuelle Version ('+esc(APP_VERSION)+').</span><button class="btn sec" id="btnHide">OK</button><button class="btn sec" id="btnForce">Neu laden</button>';
+      $("btnHide").onclick=()=>{bar.hidden=true;};$("btnForce").onclick=applyUpdate;
+    }
+  }catch(e){
+    if(manual){bar.hidden=false;bar.className="upd err";bar.innerHTML="<span>Update-Prüfung fehlgeschlagen: "+esc(e.message||e)+"</span>";}
+  }
+  btn.disabled=false;
 }
 //#LOGIC_END
 if(typeof document!=="undefined"&&document.getElementById("profSel"))init();
