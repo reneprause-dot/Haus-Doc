@@ -325,7 +325,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
 <script>
 "use strict";
-const APP_VERSION="1.3.1";
+const APP_VERSION="1.3.2";
 
 /* ============================================================
    DATENBANK
@@ -1091,7 +1091,7 @@ function profileText(p){
 }
 const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt.";
 const GBASE="https://generativelanguage.googleapis.com/v1beta/";
-const cleanKey=k=>String(k||"").replace(/[^A-Za-z0-9_\-]/g,"");
+const cleanKey=k=>String(k||"").replace(/[\s"'“”‘’„\u200B-\u200D\u2060\uFEFF\u00A0]/g,"").replace(/^key=/i,"").replace(/[^\x21-\x7E]/g,"");
 function apiErr(r){
   const msg=(r.j&&r.j.error&&r.j.error.message)||("HTTP "+r.status);
   if(r.status===400&&/api key/i.test(msg))return "API-Schlüssel ungültig. Bitte den Schlüssel in Google AI Studio neu kopieren. ("+msg+")";
