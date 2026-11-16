@@ -325,7 +325,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
 <script>
 "use strict";
-const APP_VERSION="1.3.0";
+const APP_VERSION="1.3.1";
 
 /* ============================================================
    DATENBANK
@@ -1090,23 +1090,72 @@ function profileText(p){
   return t;
 }
 const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt.";
-async function gemini(prompt,json){
-  const key=S.ai.key;if(!key)throw new Error("Bitte zuerst den Gemini-API-Schlüssel in den KI-Einstellungen eintragen.");
-  const models=[...new Set([S.ai.model||"gemini-flash-latest","gemini-flash-latest"])];
-  let last=null;
-  for(const m of models){
+const GBASE="https://generativelanguage.googleapis.com/v1beta/";
+const cleanKey=k=>String(k||"").replace(/[^A-Za-z0-9_\-]/g,"");
+function apiErr(r){
+  const msg=(r.j&&r.j.error&&r.j.error.message)||("HTTP "+r.status);
+  if(r.status===400&&/api key/i.test(msg))return "API-Schlüssel ungültig. Bitte den Schlüssel in Google AI Studio neu kopieren. ("+msg+")";
+  if(r.status===403)return "Zugriff verweigert – Schlüssel nicht freigeschaltet oder auf andere Websites eingeschränkt (HTTP-Referrer). ("+msg+")";
+  if(r.status===429)return "Kontingent/Limit erreicht – später erneut versuchen. ("+msg+")";
+  return msg;
+}
+/* Anfrage an Google: zuerst Schlüssel in der URL, bei Netzwerkfehler (Safari: „Load failed“) zusätzlich per Header */
+async function gfetch(path,opts){
+  const key=cleanKey(S.ai.key);
+  if(!key)throw new Error("Bitte zuerst den Gemini-API-Schlüssel in den KI-Einstellungen eintragen.");
+  let lastErr=null;
+  for(const mode of ["url","hdr"]){
     try{
-      const body={systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:Object.assign({temperature:.3},json?{responseMimeType:"application/json"}:{})};
-      const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(m)+":generateContent?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      const o=Object.assign({},opts);o.headers=Object.assign({},opts&&opts.headers);
+      let url=GBASE+path;
+      if(mode==="url")url+=(path.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(key);else o.headers["x-goog-api-key"]=key;
+      const r=await fetch(url,o);
       const j=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
-      const t=(((j.candidates||[])[0]||{}).content||{}).parts;
-      const txt=t?t.map(x=>x.text||"").join(""):"";
-      if(!txt)throw new Error("Leere Antwort der KI.");
-      return txt;
-    }catch(e){last=e;}
+      return{ok:r.ok,status:r.status,j};
+    }catch(e){lastErr=e;}
   }
-  throw last||new Error("KI-Anfrage fehlgeschlagen.");
+  const err=new Error("Netzwerkfehler („"+((lastErr&&lastErr.message)||"Load failed")+"“): Die Anfrage erreicht Google nicht. Prüfe Internetverbindung, VPN/Private Relay, Inhaltsblocker bzw. Datenschutz-Einstellungen im Browser und ob die App über https geöffnet ist.");
+  err.net=true;throw err;
+}
+async function aiModels(){
+  const r=await gfetch("models?pageSize=200",{method:"GET"});
+  if(!r.ok)throw new Error(apiErr(r));
+  return(r.j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>String(m.name).replace(/^models\//,""));
+}
+function pickModels(list){
+  const ok=list.filter(n=>/flash/i.test(n)&&!/(image|tts|audio|live|embed|lite|robotics|computer)/i.test(n));
+  const pool=ok.length?ok:list;
+  const lat=pool.filter(n=>/latest/i.test(n));
+  const rest=pool.filter(n=>!/latest/i.test(n)).sort((a,b)=>b.localeCompare(a,"en",{numeric:true}));
+  return[...lat,...rest].slice(0,4);
+}
+async function gemini(prompt,json){
+  if(!cleanKey(S.ai.key))throw new Error("Bitte zuerst den Gemini-API-Schlüssel in den KI-Einstellungen eintragen.");
+  const tried=new Set();const queue=[S.ai.model||"gemini-flash-latest","gemini-flash-latest"];
+  let discovered=false,lastMsg="";
+  for(;;){
+    const m=queue.find(x=>!tried.has(x));
+    if(!m){
+      if(discovered)break;
+      discovered=true;
+      const l=await aiModels();queue.push(...pickModels(l));
+      continue;
+    }
+    tried.add(m);
+    const body={systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:Object.assign({temperature:.3},json?{responseMimeType:"application/json"}:{})};
+    const r=await gfetch("models/"+encodeURIComponent(m)+":generateContent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(r.ok){
+      const parts=(((r.j.candidates||[])[0]||{}).content||{}).parts;
+      const txt=parts?parts.map(x=>x.text||"").join(""):"";
+      if(!txt)throw new Error("Leere Antwort der KI (evtl. Sicherheitsfilter) – bitte anders formulieren.");
+      if(m!==S.ai.model){S.ai.model=m;save();const inp=typeof document!=="undefined"&&document.getElementById("aiModel");if(inp)inp.value=m;}
+      return txt;
+    }
+    lastMsg=apiErr(r);
+    if(r.status===404||(r.status===400&&/model/i.test(lastMsg)))continue;
+    throw new Error(lastMsg);
+  }
+  throw new Error("Kein nutzbares Modell gefunden. "+lastMsg);
 }
 function md(t){
   const lines=esc(t).split(/\n/);let h="",inl=false;
@@ -1226,37 +1275,17 @@ function init(){
   $("btnInfo").onclick=()=>$("dlgDisc").showModal();
   $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
   $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
-  $("aiSave").onclick=()=>{S.ai.key=$("aiKey").value.trim();S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();$("aiStat").textContent="Gespeichert.";};
+  $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();$("aiStat").textContent="Gespeichert ("+S.ai.key.length+" Zeichen Schlüssel).";};
   $("aiTest").onclick=async()=>{
-    S.ai.key=$("aiKey").value.trim();S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();
-    $("aiStat").textContent="Teste …";
-    try{await gemini("Antworte nur mit dem Wort: ok");$("aiStat").textContent="✓ Verbindung funktioniert.";}catch(e){$("aiStat").textContent="✗ "+(e.message||e);}
+    S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();
+    const st=$("aiStat");st.textContent="1/2 Verbindung zu Google …";
+    try{
+      const l=await aiModels();
+      st.textContent="✓ Verbindung ok ("+l.length+" Modelle verfügbar). 2/2 Modell testen …";
+      await gemini("Antworte nur mit dem Wort: ok");
+      st.textContent="✓ KI funktioniert (Modell: "+S.ai.model+").";
+    }catch(e){st.textContent="✗ "+(e.message||e);}
   };
-  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
-  $("condList").addEventListener("click",e=>{
-    const b=e.target.closest("[data-diary]");if(!b)return;
-    const c=COND.find(x=>x.id===b.dataset.diary);if(!c)return;
-    openEntry(null,{title:c.n,sym:[...S.sel].filter(id=>SYM[id]).map(id=>SYM[id].label).join(", ")});
-  });
-  $("enNew").onclick=()=>openEntry(null,S.calSel?{}:{});
-  $("enSave").onclick=saveEntry;$("enCancel").onclick=()=>$("dlgEntry").close();$("enDel").onclick=deleteEntry;
-  $("enActive").onchange=e=>{if(e.target.checked)$("enEnd").value="";};
-  $("enEnd").onchange=e=>{if(e.target.value)$("enActive").checked=false;};
-  $("fpDiary").onchange=e=>{S.fpid=e.target.value;renderDiary();};
-  $("fpCal").onchange=e=>{S.fpid=e.target.value;renderCal();};
-  $("fq").oninput=e=>{S.fq=e.target.value;renderDiary();};
-  $("dList").addEventListener("click",e=>{const b=e.target.closest("[data-edit]");if(b)openEntry(b.dataset.edit);});
-  $("dayCard").addEventListener("click",e=>{
-    const b=e.target.closest("[data-edit]");if(b){openEntry(b.dataset.edit);return;}
-    const a=e.target.closest("[data-addday]");if(a)openEntry(null,{start:a.dataset.addday});
-  });
-  $("calGrid").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(!b)return;S.calSel=b.dataset.day;renderCal();});
-  $("calPrev").onclick=()=>{S.calM--;if(S.calM<0){S.calM=11;S.calY--;}renderCal();};
-  $("calNext").onclick=()=>{S.calM++;if(S.calM>11){S.calM=0;S.calY++;}renderCal();};
-  $("btnExport").onclick=exportData;$("btnImport").onclick=()=>$("fileImport").click();
-  $("fileImport").onchange=e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value="";};
-  $("btnWipe").onclick=wipeAll;
-  try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(ok=>{S.persisted=ok;if(S.view==="diary")renderDiary();}).catch(()=>{});}}catch(e){}
   $("aiExtract").onclick=aiExtract;$("aiAssess").onclick=aiAssess;$("aiAsk").onclick=aiAsk;
   if(!S.disc)$("dlgDisc").showModal();else if(!S.profiles.length)openProfileDialog();
   setupPWA();
