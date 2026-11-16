@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d5b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hausmittel">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Hausmittel-Ratgeber</title>
+<style>
+:root{
+  --bg:#f3f7f4;--card:#ffffff;--fg:#1c2b24;--muted:#5d6f66;--line:#d9e4dd;
+  --accent:#2e7d5b;--accent2:#e3f2ea;--accentfg:#ffffff;
+  --red:#b3261e;--red2:#fdeceb;--amber:#8a5a00;--amber2:#fff4dc;--blue2:#e8f0fb;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1713;--card:#18231d;--fg:#e6f0ea;--muted:#9bb0a5;--line:#2a3a31;
+  --accent:#4cb487;--accent2:#1d3a2c;--accentfg:#06180f;--red:#ff8a80;--red2:#3a1b19;
+  --amber:#ffcc66;--amber2:#3a2f12;--blue2:#18283d;--shadow:none}
+}
+*{box-sizing:border-box}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;padding-bottom:5rem}
+header{position:sticky;top:0;z-index:20;background:var(--accent);color:var(--accentfg);padding:.55rem .9rem;padding-top:calc(.55rem + env(safe-area-inset-top));display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+header h1{font-size:1.15rem;margin:0;flex:1;min-width:10rem}
+header .ver{font-size:.7rem;opacity:.85;font-weight:400;margin-left:.3rem}
+header button{background:rgba(255,255,255,.18);color:inherit;border:0;border-radius:.5rem;padding:.35rem .6rem;font-size:.9rem;cursor:pointer}
+.disc{background:var(--amber2);color:var(--amber);font-size:.82rem;padding:.5rem .9rem;border-bottom:1px solid var(--line)}
+main{max-width:1200px;margin:0 auto;padding:.8rem;display:grid;gap:.8rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:980px){
+  main{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start}
+  .col-r{position:sticky;top:4.2rem;max-height:calc(100vh - 5rem);overflow:auto;padding-right:.2rem}
+  .bar{display:none!important}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:.9rem;padding:.8rem .9rem;box-shadow:var(--shadow);margin-bottom:.8rem}
+.card h2{font-size:1.05rem;margin:0 0 .5rem;display:flex;align-items:center;gap:.4rem}
+.muted{color:var(--muted);font-size:.88rem}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{background:var(--accent);color:var(--accentfg);border:0;border-radius:.6rem;padding:.5rem .9rem;cursor:pointer;font-weight:600}
+.btn.sec{background:var(--accent2);color:var(--fg);font-weight:500}
+.btn.danger{background:var(--red2);color:var(--red)}
+.btn:disabled{opacity:.5}
+input[type=text],input[type=number],input[type=password],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem .6rem}
+textarea{min-height:5rem;resize:vertical}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.row>*{flex:0 0 auto}.row>.grow{flex:1 1 8rem}
+.profile{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.profile select{flex:1 1 10rem;width:auto}
+.pinfo{margin-top:.4rem;font-size:.88rem}
+.tag{display:inline-block;border-radius:2rem;padding:.1rem .55rem;font-size:.75rem;border:1px solid var(--line);background:var(--bg);margin:.1rem .15rem .1rem 0}
+.tag.red{background:var(--red2);color:var(--red);border-color:transparent}
+.tag.amber{background:var(--amber2);color:var(--amber);border-color:transparent}
+.tag.green{background:var(--accent2);color:var(--fg);border-color:transparent}
+details.cat{border-top:1px solid var(--line);padding:.3rem 0}
+details.cat>summary{cursor:pointer;font-weight:600;padding:.4rem 0;list-style:none;display:flex;justify-content:space-between;gap:.5rem}
+details.cat>summary::-webkit-details-marker{display:none}
+details.cat>summary .cnt{font-weight:400;color:var(--muted);font-size:.85rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;padding:.2rem 0 .5rem}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:2rem;padding:.4rem .75rem;cursor:pointer;font-size:.92rem;min-height:2.2rem}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accentfg);border-color:var(--accent);font-weight:600}
+.chip.rot{border-color:var(--red)}
+.chip.rot::before{content:"⚠ ";color:var(--red)}
+.chip.rot[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.chip.rot[aria-pressed=true]::before{color:#fff}
+.sel{display:flex;flex-wrap:wrap;gap:.35rem;margin:.4rem 0}
+.sel .chip{padding:.25rem .6rem;min-height:0;font-size:.85rem}
+.banner{border-radius:.7rem;padding:.6rem .75rem;margin-bottom:.6rem;font-size:.92rem}
+.banner.rot{background:var(--red2);color:var(--red);border:1px solid var(--red)}
+.banner.gelb{background:var(--amber2);color:var(--amber)}
+.banner.info{background:var(--blue2)}
+.banner ul{margin:.2rem 0 0 1.1rem;padding:0}
+.cond{border:1px solid var(--line);border-radius:.8rem;margin-bottom:.6rem;background:var(--card);overflow:hidden}
+.cond.ernst{border-color:var(--red)}
+.cond>summary{cursor:pointer;padding:.6rem .75rem;list-style:none}
+.cond>summary::-webkit-details-marker{display:none}
+.ctitle{display:flex;justify-content:space-between;gap:.5rem;align-items:baseline;font-weight:700}
+.pct{font-weight:600;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.meter{height:.45rem;border-radius:1rem;background:var(--line);margin-top:.35rem;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:1rem}
+.cond.ernst .meter i{background:var(--red)}
+.cbody{padding:.2rem .75rem .75rem}
+.cbody h3{font-size:.95rem;margin:.8rem 0 .3rem}
+.item{border-left:3px solid var(--accent);background:var(--bg);border-radius:.4rem;padding:.45rem .6rem;margin:.35rem 0}
+.item.caution{border-left-color:#d19a00}
+.item.blocked{border-left-color:var(--red);opacity:.9}
+.item b{display:block}
+.item .w{font-size:.88rem;margin-top:.15rem}
+.item .n{font-size:.82rem;margin-top:.2rem;color:var(--muted)}
+.item .n.warn{color:var(--amber)}
+.item .n.stop{color:var(--red);font-weight:600}
+.tab-note{font-size:.8rem;color:var(--muted)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--card);border-top:1px solid var(--line);padding:.55rem .9rem;padding-bottom:calc(.55rem + env(safe-area-inset-bottom));display:flex;gap:.6rem;align-items:center;box-shadow:0 -2px 8px rgba(0,0,0,.12)}
+.bar .t{flex:1;font-size:.9rem;min-width:0}
+.bar .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+dialog{border:0;border-radius:1rem;padding:1rem;max-width:34rem;width:calc(100% - 1.5rem);background:var(--card);color:var(--fg);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog h2{margin:0 0 .6rem;font-size:1.1rem}
+.field{margin:.55rem 0}
+.field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:.2rem}
+.seg{display:flex;border:1px solid var(--line);border-radius:.6rem;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--bg);padding:.5rem;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accentfg);font-weight:600}
+.chk{display:flex;gap:.5rem;align-items:flex-start;margin:.35rem 0;font-size:.92rem}
+.chk input{margin-top:.25rem;width:1.1rem;height:1.1rem}
+.ai-out{white-space:normal;background:var(--bg);border-radius:.6rem;padding:.6rem .75rem;margin-top:.6rem;font-size:.93rem}
+.ai-out p{margin:.3rem 0}.ai-out ul{margin:.3rem 0 .3rem 1.1rem;padding:0}
+.spin{display:inline-block;width:1rem;height:1rem;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-.15rem;margin-right:.4rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);font-size:.78rem}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌿 Hausmittel-Ratgeber<span class="ver" id="verTop"></span></h1>
+  <button id="fMinus" aria-label="Schrift kleiner">A−</button>
+  <button id="fPlus" aria-label="Schrift größer">A+</button>
+  <button id="btnInfo" aria-label="Hinweise">ⓘ</button>
+</header>
+<div class="disc">Orientierungshilfe – <b>keine Diagnose</b> und kein Ersatz für Ärztin/Arzt oder Apotheke. Notruf <b>112</b> · Ärztlicher Bereitschaftsdienst <b>116 117</b></div>
+
+<main>
+  <div class="col-l">
+    <section class="card" id="profileCard">
+      <h2>👤 Profil</h2>
+      <div class="profile">
+        <select id="profSel" aria-label="Profil wählen"></select>
+        <button class="btn sec" id="profEdit">Bearbeiten</button>
+        <button class="btn" id="profNew">+ Neu</button>
+      </div>
+      <div class="pinfo" id="profInfo"></div>
+    </section>
+
+    <section class="card" id="symCard">
+      <h2>🩺 Symptome auswählen</h2>
+      <input type="text" id="symSearch" placeholder="Symptom suchen …" aria-label="Symptom suchen">
+      <div class="sel" id="selChips"></div>
+      <div class="row" style="margin:.2rem 0 .4rem"><span class="muted" id="selCount"></span><button class="btn sec" id="btnReset" style="margin-left:auto;padding:.3rem .7rem">Zurücksetzen</button></div>
+      <div id="symList"></div>
+    </section>
+  </div>
+
+  <div class="col-r" id="results">
+    <section id="banners"></section>
+    <section class="card" id="condCard">
+      <h2>🔎 Mögliche Ursachen &amp; Behandlung</h2>
+      <div id="condList"></div>
+    </section>
+    <section class="card" id="multiCard" hidden></section>
+    <section class="card" id="aiCard">
+      <h2>✨ KI-Unterstützung</h2>
+      <p class="muted" style="margin-top:0">Optional (eigener Google-Gemini-API-Schlüssel nötig). Es werden nur auf Knopfdruck Profil-Eckdaten (Alter, Gewicht, Besonderheiten) und deine Symptome an Google gesendet.</p>
+      <div class="field"><label for="aiFree">Beschreibe in eigenen Worten, was los ist – die KI wählt passende Symptome aus</label>
+        <textarea id="aiFree" placeholder="z. B. Seit gestern Abend Halsschmerzen, laufende Nase und abends leichtes Fieber …"></textarea></div>
+      <div class="row">
+        <button class="btn" id="aiExtract">Symptome erkennen</button>
+        <button class="btn sec" id="aiAssess">KI-Einschätzung</button>
+      </div>
+      <div class="field" style="margin-top:.8rem"><label for="aiQ">Frage zu Hausmitteln oder Verträglichkeit</label>
+        <input type="text" id="aiQ" placeholder="z. B. Darf mein Kind Kamillentee trinken?"></div>
+      <button class="btn sec" id="aiAsk">Fragen</button>
+      <div id="aiOut"></div>
+      <details style="margin-top:.8rem"><summary class="muted" style="cursor:pointer">⚙ KI-Einstellungen</summary>
+        <div class="field"><label for="aiKey">Gemini-API-Schlüssel (nur auf diesem Gerät gespeichert)</label>
+          <input type="password" id="aiKey" autocomplete="off" placeholder="AIza…"></div>
+        <div class="field"><label for="aiModel">Modell</label><input type="text" id="aiModel" placeholder="gemini-flash-latest"></div>
+        <div class="row"><button class="btn sec" id="aiSave">Speichern</button><button class="btn sec" id="aiTest">Verbindung testen</button></div>
+        <div class="muted" id="aiStat" style="margin-top:.4rem"></div>
+      </details>
+    </section>
+  </div>
+</main>
+<footer id="foot"></footer>
+
+<div class="bar" id="bar"><div class="t" id="barT"></div><button class="btn" id="barGo">Ergebnis ▾</button></div>
+
+<dialog id="dlgProfile">
+  <h2 id="dpTitle">Profil</h2>
+  <div class="field"><label for="dpName">Name</label><input type="text" id="dpName" maxlength="30" placeholder="z. B. Lena"></div>
+  <div class="field"><label>Person</label>
+    <div class="seg"><button type="button" id="dpAdult">Erwachsene/r</button><button type="button" id="dpChild">Kind</button></div></div>
+  <div class="row">
+    <div class="field grow"><label for="dpAge" id="dpAgeLbl">Alter</label><input type="number" id="dpAge" min="0" max="120" step="1" inputmode="numeric"></div>
+    <div class="field" id="dpUnitWrap"><label for="dpUnit">Einheit</label><select id="dpUnit"><option value="y">Jahre</option><option value="m">Monate</option></select></div>
+    <div class="field grow"><label for="dpW">Gewicht (kg)</label><input type="number" id="dpW" min="2" max="250" step="0.1" inputmode="decimal"></div>
+  </div>
+  <div class="muted" id="dpHint"></div>
+  <div class="field"><label>Besonderheiten (beeinflussen die Eignung von Mitteln)</label>
+    <label class="chk" id="cSchwanger"><input type="checkbox" data-f="schwanger"><span>Schwanger</span></label>
+    <label class="chk" id="cStillen"><input type="checkbox" data-f="stillen"><span>Stillzeit</span></label>
+    <label class="chk"><input type="checkbox" data-f="asthma"><span>Asthma / Atemwegserkrankung</span></label>
+    <label class="chk"><input type="checkbox" data-f="magen"><span>Magen-/Darmgeschwür oder sehr empfindlicher Magen</span></label>
+    <label class="chk"><input type="checkbox" data-f="niere"><span>Nieren- oder Lebererkrankung</span></label>
+    <label class="chk"><input type="checkbox" data-f="blutverd"><span>Nimmt Blutverdünner</span></label>
+    <label class="chk"><input type="checkbox" data-f="korbbl"><span>Allergie gegen Korbblütler (Kamille, Arnika, Beifuß …)</span></label>
+  </div>
+  <div class="row" style="margin-top:.8rem">
+    <button class="btn" id="dpSave">Speichern</button>
+    <button class="btn sec" id="dpCancel">Abbrechen</button>
+    <button class="btn danger" id="dpDel" style="margin-left:auto">Löschen</button>
+  </div>
+</dialog>
+
+<dialog id="dlgDisc">
+  <h2>Wichtiger Hinweis</h2>
+  <p>Diese App gibt <b>allgemeine Orientierung</b> zu Hausmitteln und rezeptfreien Wirkstoffen. Sie stellt <b>keine Diagnose</b>, ersetzt keine ärztliche oder pharmazeutische Beratung und kennt deine Krankengeschichte nicht.</p>
+  <ul>
+    <li>Bei <b>Warnzeichen</b> (Atemnot, Brustschmerz, Nackensteife, Bewusstseinsstörung, Krampfanfall …) sofort <b>112</b>.</li>
+    <li><b>Säuglinge</b> und Kleinkinder, <b>Schwangere</b> und chronisch Kranke: im Zweifel immer ärztlich abklären.</li>
+    <li>Dosierungen werden bewusst <b>nicht</b> genannt – bitte Packungsbeilage bzw. Apotheke nutzen (bei Kindern nach <b>Körpergewicht</b>).</li>
+    <li>Die KI kann sich irren. Ihre Antworten sind kein medizinischer Rat.</li>
+  </ul>
+  <button class="btn" id="discOk">Verstanden</button>
+</dialog>
+
+<script>
+"use strict";
+const APP_VERSION="1.0.0";
+
+/* ============================================================
+   DATENBANK
+   ============================================================ */
+const CATS=[
+ {id:"allg",name:"Allgemein",ico:"🌡️"},{id:"kopf",name:"Kopf & Nerven",ico:"🧠"},
+ {id:"hno",name:"Hals, Nase, Ohren",ico:"👃"},{id:"atem",name:"Atemwege & Husten",ico:"🫁"},
+ {id:"mag",name:"Magen & Darm",ico:"🍽️"},{id:"haut",name:"Haut & Augen",ico:"🧴"},
+ {id:"harn",name:"Harnwege",ico:"💧"},{id:"muskel",name:"Rücken, Muskeln, Gelenke",ico:"💪"},
+ {id:"schlaf",name:"Schlaf & Psyche",ico:"😴"},{id:"zahn",name:"Zähne & Mund",ico:"🦷"}
+];
+// [id, Label, Kategorie, Warnstufe(rot|gelb), nurKinder]
+const SYM_RAW=[
+ ["fieber","Fieber (38,0–39,4 °C)","allg"],
+ ["hohes_fieber","Hohes Fieber (ab 39,5 °C)","allg","gelb"],
+ ["fieber_lange","Fieber länger als 3 Tage","allg","gelb"],
+ ["schuettelfrost","Schüttelfrost","allg"],
+ ["gliederschmerz","Glieder- und Muskelschmerzen","allg"],
+ ["muedigkeit","Müdigkeit / Abgeschlagenheit","allg"],
+ ["appetitlos","Appetitlosigkeit","allg"],
+ ["ploetzlich","Plötzlicher, heftiger Krankheitsbeginn","allg"],
+ ["verschlechterung","Erneute Verschlechterung oder Verlauf > 10 Tage","allg","gelb"],
+ ["dehydration","Austrocknung (kaum Urin, trockener Mund, eingefallene Augen, sehr schlapp)","allg","rot"],
+ ["bewusstsein","Verwirrtheit / ungewöhnliche Schläfrigkeit","allg","rot"],
+ ["krampfanfall","Krampfanfall","allg","rot"],
+ ["kopfschmerz","Kopfschmerzen (dumpf, drückend)","kopf"],
+ ["kopf_einseitig","Pochende, einseitige Kopfschmerzen","kopf"],
+ ["lichtempfindlich","Licht- und Lärmempfindlichkeit","kopf"],
+ ["schwindel","Schwindel","kopf"],
+ ["nackensteif","Nackensteifigkeit (Kinn kann nicht zur Brust)","kopf","rot"],
+ ["druck_stirn","Druckgefühl Stirn/Wangen (stärker beim Vorbeugen)","kopf"],
+ ["halsschmerz","Halsschmerzen","hno"],
+ ["schluckbeschw","Schmerzen beim Schlucken","hno"],
+ ["heiserkeit","Heiserkeit","hno"],
+ ["belaege","Weißliche Beläge/Eiterstippchen auf den Mandeln","hno"],
+ ["lymph","Geschwollene Lymphknoten am Hals","hno"],
+ ["schnupfen_klar","Schnupfen (klar, wässrig)","hno"],
+ ["schnupfen_eitrig","Schnupfen (gelb-grün, zäh)","hno"],
+ ["nase_verstopft","Verstopfte Nase","hno"],
+ ["niesen","Niesreiz / Niesattacken","hno"],
+ ["ohrenschmerz","Ohrenschmerzen","hno"],
+ ["hoerminderung","Gedämpftes Hören / Druck auf dem Ohr","hno"],
+ ["geruchsverlust","Verminderter Geruchssinn","hno"],
+ ["husten_trocken","Trockener Reizhusten","atem"],
+ ["husten_schleim","Husten mit Schleim","atem"],
+ ["auswurf","Gelb-grüner Auswurf","atem"],
+ ["bellender","Bellender Husten","atem"],
+ ["pfeifend","Pfeifende Atmung beim Ausatmen","atem"],
+ ["stridor","Ziehendes Geräusch beim Einatmen / Atemnot im Hals","atem","rot"],
+ ["atemnot","Atemnot","atem","rot"],
+ ["brustschmerz","Starke Brustschmerzen / Druck auf der Brust","atem","rot"],
+ ["uebelkeit","Übelkeit","mag"],
+ ["erbrechen","Erbrechen","mag"],
+ ["durchfall","Durchfall","mag"],
+ ["durchfall_blutig","Blut im Stuhl","mag","rot"],
+ ["verstopfung","Verstopfung","mag"],
+ ["bauchschmerz","Bauchschmerzen","mag"],
+ ["bauchkraempfe","Bauchkrämpfe / Koliken","mag"],
+ ["bauch_rechts_unten","Starke Schmerzen rechts unten im Bauch","mag","rot"],
+ ["blaehungen","Blähungen / Völlegefühl","mag"],
+ ["sodbrennen","Sodbrennen","mag"],
+ ["aufstossen","Saures Aufstoßen","mag"],
+ ["hautausschlag","Hautausschlag","haut"],
+ ["juckreiz","Juckreiz","haut"],
+ ["hautroetung","Hautrötung / Wärme","haut"],
+ ["schwellung","Lokale Schwellung (z. B. nach Stich)","haut"],
+ ["augen_juckend","Juckende, tränende Augen","haut"],
+ ["augen_eitrig","Gerötete, verklebte oder eitrige Augen","haut"],
+ ["brennen","Brennen beim Wasserlassen","harn"],
+ ["harndrang","Häufiger Harndrang (kleine Mengen)","harn"],
+ ["blut_urin","Blut im Urin","harn","rot"],
+ ["flanken","Flankenschmerzen (seitlich im Rücken)","harn","gelb"],
+ ["ruecken","Rückenschmerzen","muskel"],
+ ["verspannung","Muskelverspannung / verspannter Nacken","muskel"],
+ ["gelenk","Gelenkschmerzen","muskel"],
+ ["einschlaf","Einschlafprobleme","schlaf"],
+ ["durchschlaf","Durchschlafprobleme","schlaf"],
+ ["unruhe","Innere Unruhe / Nervosität","schlaf"],
+ ["stress","Stress / Anspannung","schlaf"],
+ ["zahnschmerz","Zahnschmerzen","zahn"],
+ ["zahnfleisch","Gerötetes / geschwollenes Zahnfleisch","zahn"],
+ ["sabbern","Vermehrtes Sabbern","zahn","","k"],
+ ["quengelig","Quengelig / unruhig","zahn","","k"],
+ ["kauen","Kaut und beißt auf allem herum","zahn","","k"]
+];
+const SYM={};SYM_RAW.forEach(([id,label,cat,warn,kids])=>SYM[id]={id,label,cat,warn:warn||"",kids:!!kids});
+const WARN_TXT={
+ atemnot:"Atemnot → Notruf 112",
+ brustschmerz:"Starke Brustschmerzen/Druck → Notruf 112",
+ nackensteif:"Nackensteifigkeit (v. a. mit Fieber/Kopfschmerz) → sofort Notaufnahme/112 (Verdacht Hirnhautentzündung)",
+ bewusstsein:"Verwirrtheit/Bewusstseinsstörung → Notruf 112",
+ krampfanfall:"Krampfanfall → Notruf 112",
+ stridor:"Ziehendes Atemgeräusch/Atemnot → Notruf 112",
+ durchfall_blutig:"Blut im Stuhl → noch heute ärztlich abklären",
+ blut_urin:"Blut im Urin → noch heute ärztlich abklären",
+ bauch_rechts_unten:"Starke Schmerzen rechts unten im Bauch → Notaufnahme (Blinddarm möglich), keine Wärme, nichts essen",
+ dehydration:"Zeichen der Austrocknung → ärztliche Hilfe, bei Kindern sofort",
+ hohes_fieber:"Hohes Fieber (≥ 39,5 °C) → ärztlich abklären lassen (Kinder: am selben Tag)",
+ fieber_lange:"Fieber länger als 3 Tage → Arztbesuch",
+ verschlechterung:"Verschlechterung oder sehr langer Verlauf → Arztbesuch",
+ flanken:"Flankenschmerzen mit Fieber/Harnwegsbeschwerden → zeitnah ärztlich abklären (Nierenbeteiligung möglich)"
+};
+const FLAG_LABEL={schwanger:"schwanger",stillen:"stillend",asthma:"Asthma",magen:"empfindlicher Magen/Geschwür",niere:"Nieren-/Lebererkrankung",blutverd:"Blutverdünner",korbbl:"Korbblütler-Allergie"};
+const AVOID_TXT={
+ schwanger:"In der Schwangerschaft nicht empfohlen.",stillen:"In der Stillzeit nicht empfohlen.",
+ asthma:"Bei Asthma nicht geeignet.",magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",
+ niere:"Bei Nieren-/Lebererkrankung nicht geeignet.",blutverd:"Mit Blutverdünnern nicht ohne ärztliche Rücksprache.",
+ korbbl:"Bei Korbblütler-Allergie nicht geeignet."
+};
+
+/* Hausmittel: minM = Mindestalter in Monaten; avoid/caution je Profil-Flag; blockSym/cautionSym je Symptom; relSym = nur zeigen wenn eines dieser Symptome gewählt */
+const REM={
+ trinken:{n:"Viel trinken (Wasser, ungesüßter Kräuter- oder Früchtetee)",w:"Über den Tag verteilt in kleinen Schlucken trinken, Zimmertemperatur oder lauwarm. Säuglinge: Muttermilch bzw. Flaschennahrung häufiger anbieten.",e:"Gleicht Flüssigkeitsverlust (Fieber, Durchfall) aus und verflüssigt Schleim."},
+ ruhe:{n:"Ruhe und Schonung",w:"Körperliche Anstrengung und Sport pausieren, ausreichend schlafen.",e:"Das Immunsystem arbeitet effektiver, wenn der Körper entlastet ist."},
+ luftfeucht:{n:"Frische, nicht zu trockene Raumluft",w:"Mehrmals täglich stoßlüften, Luftfeuchte ca. 40–60 %. Bei Kleinkindern lieber feuchte Tücher aufhängen als Verdampfer nutzen.",e:"Schleimhäute bleiben feucht, Reizhusten und verstopfte Nase werden gelindert."},
+ nasenspuel:{n:"Kochsalz-Nasenspülung / -spray",w:"Isotonische Kochsalzlösung (Apotheke) mehrmals täglich anwenden. Säuglinge/Kleinkinder: Tropfen oder Spray statt Spülkanne.",e:"Löst Sekret, befeuchtet und reinigt die Nase.",ageNotes:[{maxM:24,t:"Bei Säuglingen vor dem Trinken/Schlafen abtropfen oder absaugen – so geht das Trinken leichter."}]},
+ hochlagern:{n:"Oberkörper hochlagern",minM:12,minText:"Bei Säuglingen kein Kissen und keine eigenmächtige Schräglage – ärztlich/hebammenseitig beraten lassen.",w:"Kopfteil des Bettes leicht erhöhen bzw. zusätzliches Kissen unterlegen.",e:"Erleichtert Atmen und Abfluss von Nasensekret, mindert nächtlichen Husten und Sodbrennen."},
+ dampfdusche:{n:"Dampfdusche (heiß-feuchte Luft im Bad)",minM:12,w:"Heiße Dusche laufen lassen und 10 Minuten im dampfgefüllten Bad aufhalten – ohne direkten heißen Strahl auf das Kind. Danach warm einpacken.",e:"Feuchte Wärme löst Schleim und beruhigt die Atemwege."},
+ inhal_salz:{n:"Dampfinhalation mit Salzwasser",minM:72,minText:"Verbrühungsgefahr – erst ab ca. 6 Jahren und nur unter Aufsicht.",w:"Schüssel mit heißem (nicht kochendem) Wasser und etwas Salz, 5–10 Minuten inhalieren, Abstand halten.",e:"Befeuchtet die Schleimhäute, löst festsitzendes Sekret.",caution:{asthma:"Bei Asthma kann Dampf die Atemwege reizen – vorsichtig/kurz anwenden."}},
+ honig:{n:"Honig (pur oder in lauwarmem Tee/Milch)",minM:12,minText:"Honig erst ab 1 Jahr – bei Säuglingen besteht die Gefahr von Säuglingsbotulismus.",w:"1–2 Teelöffel Honig pur oder in lauwarmem (nicht heißem) Getränk, v. a. abends.",e:"Beruhigt Reizhusten und gereizten Hals; nachweislich hustendämpfend bei Kindern.",relSym:["husten_trocken","husten_schleim","halsschmerz","heiserkeit","schluckbeschw"]},
+ zwiebelsirup:{n:"Zwiebel-Honig-Sirup",minM:12,minText:"Enthält Honig – erst ab 1 Jahr.",w:"Gewürfelte Zwiebel mit Honig bedecken, einige Stunden ziehen lassen, den Saft löffelweise einnehmen.",e:"Traditionelles Mittel bei Husten mit Reiz.",relSym:["husten_trocken","husten_schleim"]},
+ salbei:{n:"Salbeitee (trinken oder gurgeln)",minM:48,minText:"Für jüngere Kinder nicht empfohlen.",avoid:{schwanger:"In der Schwangerschaft nicht in größeren Mengen.",stillen:"Salbei kann die Milchmenge verringern."},w:"1–2 TL Salbeiblätter mit ca. 150 ml heißem Wasser übergießen, 10 Minuten ziehen lassen; warm trinken oder gurgeln. Nicht dauerhaft über Wochen.",e:"Entzündungshemmend und leicht antibakteriell im Rachen.",relSym:["halsschmerz","schluckbeschw","heiserkeit"]},
+ gurgeln:{n:"Salzwasser gurgeln",minM:72,minText:"Gurgeln können Kinder meist erst ab ca. 6 Jahren sicher.",w:"½ TL Salz in ein Glas lauwarmes Wasser, mehrmals täglich gurgeln und ausspucken.",e:"Lindert Halsschmerzen und Schleimhautschwellung.",relSym:["halsschmerz","schluckbeschw","heiserkeit","zahnschmerz","zahnfleisch"]},
+ kamille:{n:"Kamillentee (trinken)",minM:6,avoid:{korbbl:"Kamille ist ein Korbblütler – bei Allergie meiden."},w:"1–2 TL Kamillenblüten mit heißem Wasser übergießen, zugedeckt 10 Minuten ziehen lassen.",e:"Beruhigt Magen, Darm und Schleimhäute."},
+ thymian:{n:"Thymiantee",minM:12,caution:{schwanger:"In üblichen Teemengen meist unbedenklich – konzentrierte Extrakte nur nach Rücksprache."},w:"1 TL Thymian mit heißem Wasser übergießen, 10 Minuten ziehen lassen, mehrmals täglich trinken.",e:"Krampflösend und schleimlösend bei Husten.",relSym:["husten_trocken","husten_schleim","auswurf"]},
+ spitzwegerich:{n:"Spitzwegerich-Tee oder -Sirup",minM:12,w:"Tee aus getrocknetem Spitzwegerich zubereiten oder Sirup nach Packungsangabe.",e:"Reizlindernd bei trockenem Reizhusten.",relSym:["husten_trocken","heiserkeit"]},
+ eibisch:{n:"Eibischwurzel-Tee (kalt angesetzt)",minM:6,w:"1–2 TL Wurzel mit kaltem Wasser übergießen, ca. 30 Minuten ziehen lassen, leicht erwärmen und schluckweise trinken.",e:"Schleimstoffe legen sich als Schutzfilm auf die gereizte Schleimhaut.",relSym:["husten_trocken","halsschmerz","heiserkeit","schluckbeschw"]},
+ suppe:{n:"Hühnersuppe / warme Brühe",minM:6,w:"Warme, leichte Suppe mit Gemüse; für Kinder wenig salzen.",e:"Flüssigkeit, Mineralstoffe und Wärme – wohltuend bei Erkältung und Appetitlosigkeit."},
+ wadenwickel:{n:"Wadenwickel bei Fieber",minM:6,blockSym:[["schuettelfrost","Bei Schüttelfrost oder kalten Händen/Füßen keine Wadenwickel."]],w:"Tücher in lauwarmes Wasser (ca. 3–4 °C unter Körpertemperatur) tauchen, um die Waden wickeln, trockenes Tuch darüber, nach 10–20 Minuten abnehmen. Nur anwenden, wenn Hände und Füße warm sind und die Person sich wohlfühlt.",e:"Entzieht über die Haut Wärme und kann Fieber um ca. 1 °C senken.",relSym:["fieber","hohes_fieber"],ageNotes:[{maxM:36,t:"Bei kleinen Kindern nur kurz anwenden und dabei bleiben; sofort abbrechen, wenn das Kind friert oder weint."}]},
+ ingwer:{n:"Ingwertee",minM:72,minText:"Für jüngere Kinder zu scharf/nicht empfohlen.",w:"Frische Ingwerscheiben mit heißem Wasser übergießen, 10 Minuten ziehen lassen.",e:"Wärmend, lindert Übelkeit; kann Kopfschmerz/Migräne begleitend mildern.",caution:{schwanger:"In Maßen (bei Schwangerschaftsübelkeit häufig genutzt) – mit Ärztin/Arzt abstimmen.",blutverd:"Kann die Blutungsneigung erhöhen – Rücksprache bei Blutverdünnern."}},
+ schonkost:{n:"Leichte Kost (Zwieback, Banane, Reis, Kartoffeln, Haferschleim)",minM:6,w:"Nach Erbrechen zuerst Flüssigkeit in kleinen Mengen; sobald Appetit da ist, leicht verdauliche Kost. Keine strenge Hungerdiät – besonders Kinder normal weiteressen lassen.",e:"Schont den Magen-Darm-Trakt, liefert Energie.",relSym:["durchfall","erbrechen","uebelkeit"]},
+ who:{n:"Selbstgemachte Trinklösung (nur ab Schulalter)",minM:72,minText:"Für Säuglinge/Kleinkinder Elektrolytlösung aus der Apotheke verwenden.",w:"1 Liter abgekochtes, abgekühltes Wasser + 6 gestrichene TL Zucker + ½ gestrichener TL Salz – genau abmessen, in kleinen Schlucken über den Tag trinken.",e:"Gleicht Wasser- und Salzverlust bei Durchfall/Erbrechen aus.",relSym:["durchfall","erbrechen"]},
+ bauchwaerme:{n:"Wärme auf den Bauch (Wärmflasche/Kirschkernkissen)",minM:36,minText:"Bei kleinen Kindern Verbrühungsgefahr – nur nach Rücksprache.",blockSym:[["bauch_rechts_unten","Bei starken Schmerzen rechts unten keine Wärme – Blinddarm muss ausgeschlossen werden."]],w:"Handwarm (nicht heiß!) mit Tuch umwickelt auf den Bauch legen, 15–20 Minuten.",e:"Entspannt die Darmmuskulatur und lindert Krämpfe.",relSym:["bauchkraempfe","bauchschmerz","blaehungen","verstopfung"]},
+ bauchmassage:{n:"Sanfte Bauchmassage im Uhrzeigersinn",blockSym:[["bauch_rechts_unten","Bei starken Schmerzen rechts unten nicht massieren."]],w:"Mit warmer Hand sanft kreisen. Bei Babys zusätzlich die Beinchen zum Bauch anwinkeln („Fliegergriff“ oder Radfahren).",e:"Regt die Darmbewegung an und löst Gasansammlungen.",relSym:["blaehungen","verstopfung","bauchkraempfe"]},
+ fenchel:{n:"Fenchel-Anis-Kümmel-Tee",minM:1,caution:{schwanger:"Nur in üblichen Teemengen und nicht dauerhaft."},w:"1 TL angedrückte Samen mit heißem Wasser übergießen, 10 Minuten ziehen lassen, lauwarm trinken.",e:"Entblähend und krampflösend.",ageNotes:[{maxM:12,t:"Bei Säuglingen nur kurzzeitig, ungesüßt und nach Absprache mit Kinderärztin/Kinderarzt."}],relSym:["blaehungen","bauchkraempfe","bauchschmerz"]},
+ pfefferminztee:{n:"Pfefferminztee",minM:48,minText:"Für jüngere Kinder nicht empfohlen.",cautionSym:[["sodbrennen","Pfefferminze kann Sodbrennen verstärken."]],w:"1 TL Blätter mit heißem Wasser übergießen, 8 Minuten ziehen lassen.",e:"Krampflösend bei Blähungen und Bauchschmerzen.",relSym:["blaehungen","bauchkraempfe","uebelkeit"]},
+ ballast:{n:"Ballaststoffreiche Kost und ausreichend Flüssigkeit",minM:6,w:"Vollkornprodukte, Gemüse, Obst, Hülsenfrüchte – schrittweise steigern und dazu genug trinken.",e:"Macht den Stuhl voluminöser und weicher."},
+ pflaumen:{n:"Backpflaumen oder Pflaumensaft",minM:6,w:"Einige eingeweichte Backpflaumen essen oder Pflaumensaft (bei Babys verdünnt) trinken.",e:"Natürliche milde Abführwirkung (Sorbit)."},
+ leinsamen:{n:"Leinsamen oder Flohsamenschalen",minM:72,minText:"Für kleinere Kinder nicht empfohlen.",avoid:{},w:"Ganze oder geschrotete Leinsamen mit viel Wasser einnehmen. Immer reichlich nachtrinken, sonst kann sich die Verstopfung verschlimmern.",e:"Quellstoffe erhöhen das Stuhlvolumen.",cautionSym:[["erbrechen","Bei Erbrechen/Darmverschluss-Verdacht nicht anwenden."]]},
+ bewegung:{n:"Leichte Bewegung (Spaziergang, Dehnen)",minM:72,w:"Täglich moderat bewegen; bei Rücken/Verspannung statt Schonung sanft aktiv bleiben.",e:"Regt Darm und Durchblutung an, löst Verspannungen."},
+ sod:{n:"Kleine Mahlzeiten, Auslöser meiden, nicht spät essen",w:"Mehrere kleine Mahlzeiten; Kaffee, Alkohol, Fettes, Scharfes und Süßes reduzieren; 2–3 Std. vor dem Schlafen nichts mehr essen.",e:"Weniger Säurerückfluss in die Speiseröhre.",relSym:["sodbrennen","aufstossen"]},
+ hafer:{n:"Haferflocken, Mandeln, stilles Wasser",minM:12,w:"Haferflocken-Brei oder einige Mandeln kauen; stilles Wasser in kleinen Schlucken.",e:"Bindet Säure und beruhigt die Magenschleimhaut.",relSym:["sodbrennen","aufstossen"]},
+ pfefferminzoel:{n:"Pfefferminzöl auf Schläfen und Stirn",minM:72,minText:"Menthol kann bei Kindern unter ca. 6 Jahren Atemprobleme auslösen – nicht im Gesicht anwenden.",caution:{asthma:"Menthol kann die Atemwege reizen.",schwanger:"Vorher mit Ärztin/Arzt oder Apotheke abklären."},w:"10-%ige Pfefferminzöl-Lösung (Apotheke) dünn auf Stirn und Schläfen auftragen. Augen aussparen, Hände danach waschen.",e:"Kühlender, schmerzlindernder Effekt bei Spannungskopfschmerz (gut belegt).",relSym:["kopfschmerz","kopf_einseitig"]},
+ kuehl:{n:"Kühler Umschlag auf Stirn/Nacken",minM:12,w:"Feuchtes, kühles (nicht eiskaltes) Tuch 10–15 Minuten auflegen.",e:"Lindert Kopfschmerz und Hitzegefühl.",relSym:["kopfschmerz","kopf_einseitig","fieber"]},
+ dunkel:{n:"Ruhiger, abgedunkelter Raum",w:"Reize reduzieren, hinlegen, Handy/Bildschirm aus.",e:"Hilft vor allem bei Migräne und Licht-/Lärmempfindlichkeit.",relSym:["kopf_einseitig","lichtempfindlich","kopfschmerz"]},
+ entspannung:{n:"Entspannung (Atemübung, Muskelentspannung, Spaziergang)",minM:72,w:"Z. B. 4 Sek. ein-, 6 Sek. ausatmen für mehrere Minuten; Nacken/Schultern bewusst lockern.",e:"Senkt Anspannung, hilft bei Kopfschmerz, Verspannung und Schlafproblemen."},
+ blasentee:{n:"Blasen-/Nierentee (z. B. Brennnessel, Goldrute) und Durchspülen",minM:216,minText:"Bei Kindern und Jugendlichen gehören Harnwegsbeschwerden in ärztliche Hand.",avoid:{niere:"Bei Nieren- oder Herzschwäche/Ödemen nicht zur Durchspülung ohne ärztlichen Rat.",schwanger:"In der Schwangerschaft nur nach ärztlicher Rücksprache."},caution:{stillen:"In der Stillzeit nur nach Rücksprache."},w:"Mehrere Tassen Tee zusätzlich zu ca. 2 Litern Flüssigkeit am Tag, solange keine Herz-/Nierenerkrankung besteht.",e:"Spült die Harnwege durch."},
+ cranberry:{n:"Cranberry (Saft/Kapseln – eher zur Vorbeugung)",minM:216,minText:"Nur für Erwachsene.",caution:{blutverd:"Wechselwirkung mit Marcumar (Phenprocoumon) möglich – Rücksprache."},w:"Ungesüßter Saft oder Präparat nach Packungsangabe.",e:"Kann wiederkehrenden Harnwegsinfekten vorbeugen; bei akuter Infektion kein sicherer Ersatz."},
+ blasenwaerme:{n:"Wärme auf den Unterbauch",minM:216,minText:"Bei Kindern ärztlich abklären lassen.",w:"Handwarme Wärmflasche/Kirschkernkissen, nicht einschlafen.",e:"Lindert Krämpfe der Blase.",blockSym:[["hohes_fieber","Bei hohem Fieber keine zusätzliche Wärme."]]},
+ augenkuehl:{n:"Kühle Kompresse (sauberes Tuch, abgekochtes Wasser)",w:"Pro Auge und Anwendung ein frisches Tuch, vorher Hände waschen. Keine Kamille auf die Augen.",e:"Lindert Juckreiz, Brennen und Schwellung.",relSym:["augen_juckend","augen_eitrig"]},
+ augenhyg:{n:"Hygiene: Hände waschen, eigenes Handtuch, Kontaktlinsen pausieren",w:"Augen nicht reiben, Sekret mit frischem Einmaltuch von innen nach außen abwischen.",e:"Verhindert die Ansteckung anderer und die Verschleppung ins andere Auge.",relSym:["augen_eitrig","augen_juckend"]},
+ pollen:{n:"Pollenkontakt verringern",w:"Fenster in Hauptflugzeiten schließen, abends Haare waschen, Straßenkleidung nicht im Schlafzimmer ablegen, Wäsche nicht draußen trocknen.",e:"Weniger Allergene = weniger Symptome.",relSym:["niesen","augen_juckend","schnupfen_klar"]},
+ melisse:{n:"Melissentee",minM:24,w:"1–2 TL Blätter mit heißem Wasser übergießen, 10 Minuten ziehen lassen, abends trinken.",e:"Mild beruhigend."},
+ baldrian:{n:"Baldrian / Hopfen (Tee oder Präparat)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Nach Packungsbeilage, vorzugsweise abends; nicht kombinieren mit Alkohol oder Schlafmitteln.",e:"Kann das Einschlafen erleichtern.",cautionSym:[]},
+ milchhonig:{n:"Warme Milch mit Honig",minM:12,minText:"Honig erst ab 1 Jahr.",w:"Lauwarm vor dem Schlafen trinken.",e:"Beruhigendes Abendritual."},
+ schlafhyg:{n:"Schlafhygiene und Abendritual",w:"Feste Schlafenszeiten, abends keine Bildschirme/Koffein, kühles dunkles Zimmer, Kinder: feste Rituale (Vorlesen, Lied).",e:"Wirksamste Basis bei Schlafproblemen."},
+ beissring:{n:"Gekühlter Beißring (nicht eingefroren)",minM:3,maxM:36,w:"Beißring im Kühlschrank (nicht im Gefrierfach) kühlen und zum Kauen geben – nur unter Aufsicht.",e:"Kühlung und Gegendruck lindern das Zahnen."},
+ zahnfleischmass:{n:"Zahnfleisch sanft massieren",minM:3,maxM:36,w:"Mit sauberem Finger oder weichem Tuch sanft über das Zahnfleisch reiben.",e:"Gegendruck beruhigt das gereizte Zahnfleisch."},
+ waermeruecken:{n:"Wärme (Wärmepflaster, Kirschkernkissen, warmes Bad)",minM:72,blockSym:[["hohes_fieber","Bei hohem Fieber keine starke Wärme."]],cautionSym:[["fieber","Bei Fieber keine intensive Wärme."]],w:"20–30 Minuten Wärme auf die verspannte Stelle; nicht auf verletzte Haut.",e:"Löst Muskelverspannungen.",relSym:["ruecken","verspannung","gelenk"]},
+ arnika:{n:"Arnika-Gel oder -Salbe (äußerlich)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{korbbl:"Arnika ist ein Korbblütler – bei Allergie meiden."},caution:{schwanger:"Äußerlich nur nach Rücksprache."},w:"Nur auf intakter Haut, nicht auf offene Wunden oder Schleimhäute.",e:"Traditionell bei Prellungen und Muskelschmerz.",relSym:["ruecken","verspannung","gelenk"]},
+ stichkuehl:{n:"Kühlen (Kühlpack in Tuch, kühle Kompresse)",w:"10–15 Minuten kühlen, Eis nie direkt auf die Haut.",e:"Lindert Schwellung, Juckreiz und Schmerz.",relSym:["schwellung","juckreiz","hautroetung","hautausschlag"]},
+ nichtkratzen:{n:"Nicht kratzen, Fingernägel kurz halten",w:"Kratzen vermeiden, bei Kindern ggf. Baumwollhandschuhe nachts.",e:"Verhindert Entzündung/Superinfektion.",relSym:["juckreiz","schwellung"]},
+ hautkuehl:{n:"Lauwarm baden/duschen, luftige Baumwollkleidung",w:"Nicht zu heiß, mild waschen oder nur Wasser, danach sanft abtupfen, rückfettende Pflege.",e:"Beruhigt gereizte Haut.",relSym:["hautausschlag","juckreiz","hautroetung"]},
+ zahnkuehl:{n:"Von außen kühlen",minM:12,w:"Kühles Tuch oder in Tuch gewickeltes Kühlpack an die Wange, nicht direkt Eis auf den Zahn.",e:"Lindert Schmerz und Schwellung.",relSym:["zahnschmerz","zahnfleisch"]},
+ nelke:{n:"Nelkenöl (zur kurzzeitigen Überbrückung)",minM:216,minText:"Nur für Erwachsene.",avoid:{schwanger:"In der Schwangerschaft nicht empfohlen.",stillen:"In der Stillzeit nicht empfohlen."},caution:{blutverd:"Kann die Blutungsneigung erhöhen."},w:"1 Tropfen auf Wattestäbchen, nur kurz an den Zahn halten, nicht ins Zahnfleisch reiben. Kein Ersatz für den Zahnarzt.",e:"Leicht betäubend und antiseptisch (Eugenol).",relSym:["zahnschmerz"]},
+ zwiebelohr:{n:"Warmes Zwiebelsäckchen am Ohr (nicht im Ohr)",minM:12,w:"Fein gehackte Zwiebel in ein Tuch, kurz erwärmen und an die Ohrmuschel legen, 15–20 Minuten. Nicht bei Ohrausfluss oder verletztem Trommelfell.",e:"Wärme kann Schmerzen lindern (Wirkung wissenschaftlich begrenzt belegt).",relSym:["ohrenschmerz"]},
+ krupp:{n:"Ruhe bewahren, kühle frische Luft, Kind aufrecht halten",w:"Kind beruhigen (Aufregung verschlimmert), kurz ans offene Fenster/auf den Balkon, aufrecht tragen. Bei Atemnot oder ziehenden Geräuschen: Notruf 112.",e:"Kühle Luft kann die Schwellung der Schleimhaut mindern."},
+ kuehlhals:{n:"Kühlen: Eis am Stiel, kalte Getränke",minM:12,w:"Kühle Getränke oder Eis in kleinen Mengen.",e:"Kühlung lindert Schluckschmerz.",relSym:["halsschmerz","schluckbeschw"]},
+ halswickel:{n:"Quarkwickel um den Hals",minM:12,w:"Raumtemperierten Quark ca. 1 cm dick auf ein Tuch streichen, um den Hals legen, abdecken, bis er warm wird (20–30 Min.). Nicht bei Hautreizung oder Milcheiweißallergie.",e:"Kühlender Wickel bei Halsentzündung.",relSym:["halsschmerz","schluckbeschw","lymph"]}
+};
+
+/* Rezeptfreie Wirkstoffe (ohne Dosisangaben!) */
+const MED={
+ paracetamol:{n:"Paracetamol (Fieber/Schmerz)",minM:3,minText:"Unter 3 Monaten nur nach ärztlicher Anweisung.",dose:true,lowKg:50,lowKgText:"Unter 50 kg Körpergewicht gelten reduzierte Höchstmengen – Packungsbeilage/Apotheke beachten.",caution:{niere:"Bei Leber-/Nierenerkrankung vorher ärztlich klären.",schwanger:"In der Schwangerschaft gilt Paracetamol als Mittel der Wahl – so kurz und niedrig dosiert wie möglich, Rücksprache empfohlen."},w:"Fiebersenkend und schmerzlindernd. Mehrfachpräparate prüfen (nicht doppelt Paracetamol nehmen). Selbstmedikation bei Fieber max. ca. 3 Tage, bei Schmerzen ca. 4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung"],ageNotes:[{maxM:6,t:"Fieber bei Säuglingen: Kinderärztin/Kinderarzt einbeziehen."}]},
+ ibuprofen:{n:"Ibuprofen (Fieber/Schmerz/Entzündung)",minM:6,minText:"Erst ab 6 Monaten.",minKg:6,dose:true,avoid:{magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",niere:"Bei Nierenerkrankung nicht geeignet.",schwanger:"In der Schwangerschaft nicht in Eigenregie (im letzten Drittel nicht anwenden) – ärztlich klären."},caution:{asthma:"Kann bei Asthma Anfälle auslösen – Vorsicht.",blutverd:"Blutungsrisiko erhöht – nur nach ärztlicher Rücksprache.",stillen:"Kurzzeitig meist vertretbar – Rücksprache."},cautionSym:[["durchfall","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["erbrechen","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["dehydration","Bei Austrocknung nicht anwenden."]],senior:"Ab 65 Jahren erhöhtes Risiko für Magen-, Nieren- und Herz-Kreislauf-Nebenwirkungen – ärztlich/Apotheke abklären.",w:"Schmerzlindernd, fiebersenkend, entzündungshemmend. Mit einer Mahlzeit einnehmen. Selbstmedikation max. ca. 3–4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","brennen"]},
+ ass:{n:"Acetylsalicylsäure (ASS)",minM:216,minText:"Bei Kindern und Jugendlichen mit Fieber/Infekt nicht anwenden (Gefahr des Reye-Syndroms).",avoid:{magen:"Bei Magen-/Darmgeschwür nicht geeignet.",blutverd:"Mit Blutverdünnern nicht kombinieren.",schwanger:"In der Schwangerschaft nicht anwenden.",stillen:"In der Stillzeit nur nach Rücksprache."},caution:{asthma:"Kann bei Asthma Anfälle auslösen."},w:"Schmerz- und fiebersenkend; nur Erwachsene. Selbstmedikation max. ca. 3–4 Tage.",relSym:["kopfschmerz","kopf_einseitig","gliederschmerz","fieber","hohes_fieber"]},
+ xylo:{n:"Abschwellendes Nasenspray (Xylometazolin u. a.)",minM:24,minText:"Unter 2 Jahren nur nach ärztlicher Anweisung.",dose:false,caution:{schwanger:"Nur kurz und nach Rücksprache.",stillen:"Nur kurz und nach Rücksprache."},ageNotes:[{maxM:72,t:"Für Kinder nur speziell dafür zugelassene, niedriger dosierte Kinder-Zubereitung verwenden."}],w:"Nicht länger als ca. 5–7 Tage anwenden (sonst Gewöhnung/Schleimhautschäden), nicht dauerhaft. Vor allem vor dem Schlafen.",relSym:["nase_verstopft","schnupfen_klar","schnupfen_eitrig","druck_stirn"]},
+ lutsch:{n:"Lutschtabletten / Halsspray (z. B. Salbei, Isländisch Moos)",minM:72,minText:"Lutschtabletten erst ab ca. 6 Jahren (Verschluckungsgefahr), Mentholsprays bei kleinen Kindern nicht.",caution:{schwanger:"Salbei-/Mentholhaltige Präparate nur nach Rücksprache."},w:"Nach Packungsbeilage; lindern Halsschmerz und Heiserkeit.",relSym:["halsschmerz","schluckbeschw","heiserkeit"]},
+ hustenloeser:{n:"Schleimlöser (Acetylcystein, Ambroxol)",minM:24,minText:"Unter 2 Jahren nicht ohne ärztlichen Rat.",dose:true,caution:{asthma:"Kann Atemwege verengen – vorsichtig.",magen:"Acetylcystein kann den Magen reizen.",schwanger:"Nur nach ärztlicher Rücksprache (v. a. im ersten Drittel)."},w:"Nur bei Husten mit zähem Schleim; dazu viel trinken. Nicht abends kurz vor dem Schlafen.",relSym:["husten_schleim","auswurf"]},
+ hustenstiller:{n:"Hustenstiller (Dextromethorphan)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{schwanger:"In der Schwangerschaft nur nach ärztlicher Rücksprache."},caution:{asthma:"Bei Asthma nur nach ärztlicher Rücksprache."},blockSym:[["husten_schleim","Bei verschleimtem Husten nicht anwenden – Schleim muss abgehustet werden."],["auswurf","Bei Auswurf nicht anwenden."]],w:"Nur bei trockenem Reizhusten, kurzzeitig (z. B. nachts).",relSym:["husten_trocken"]},
+ antihist:{n:"Antihistaminikum (Cetirizin/Loratadin)",minM:24,minText:"Unter 2 Jahren nur nach ärztlicher Anweisung.",dose:true,caution:{niere:"Dosis bei Nierenerkrankung anpassen – ärztlich klären.",schwanger:"Nur nach ärztlicher Rücksprache.",stillen:"Nur nach ärztlicher Rücksprache."},w:"Gegen Niesen, Juckreiz und tränende Augen bei Allergie; kann müde machen.",relSym:["niesen","augen_juckend","juckreiz","schnupfen_klar","hautausschlag"]},
+ ors:{n:"Elektrolytlösung aus der Apotheke (ORS)",w:"Nach Packungsanleitung anrühren; in kleinen Schlucken (z. B. löffelweise) alle paar Minuten. Auch bei Erbrechen geeignet.",relSym:["durchfall","erbrechen","dehydration"],ageNotes:[{maxM:24,t:"Bei Säuglingen/Kleinkindern mit Durchfall/Erbrechen ärztlich begleiten lassen; Stillen/Flaschennahrung fortsetzen."}]},
+ loperamid:{n:"Loperamid (Durchfallmittel)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{schwanger:"In der Schwangerschaft nicht ohne ärztlichen Rat."},blockSym:[["fieber","Bei Fieber nicht anwenden."],["hohes_fieber","Bei Fieber nicht anwenden."],["durchfall_blutig","Bei blutigem Durchfall nicht anwenden."]],w:"Nur kurz (max. 2 Tage), nicht bei bakteriellem Infekt; Flüssigkeit ersetzen bleibt wichtig.",relSym:["durchfall"]},
+ simeticon:{n:"Simeticon (Entschäumer)",w:"Entschäumer gegen Blähungen; wird nicht aufgenommen und ist daher auch für Säuglinge üblich. Nach Packungsbeilage.",relSym:["blaehungen","bauchkraempfe"]},
+ laktulose:{n:"Laktulose / Macrogol (mildes Abführmittel)",minM:12,minText:"Unter 1 Jahr nur nach Rücksprache mit der Kinderärztin/dem Kinderarzt.",w:"Nach Packungsbeilage; wirkt nach 1–2 Tagen. Reichlich trinken. Nicht dauerhaft ohne ärztlichen Rat.",relSym:["verstopfung"],cautionSym:[["erbrechen","Bei Erbrechen oder starken Bauchschmerzen nicht anwenden."]]},
+ antazida:{n:"Antazida (Magensäure bindend)",minM:144,minText:"Erst ab 12 Jahren.",avoid:{niere:"Bei Nierenerkrankung nicht geeignet (Aluminium/Magnesium)."},w:"Nach Packungsbeilage, kurzzeitig; Abstand zu anderen Medikamenten beachten.",relSym:["sodbrennen","aufstossen"]},
+ schmerzgel:{n:"Schmerzgel (z. B. Ibuprofen- oder Diclofenac-Gel)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"In der Schwangerschaft nur nach Rücksprache.",asthma:"Bei Asthma/NSAR-Empfindlichkeit Vorsicht."},w:"Auf intakte Haut dünn auftragen, nicht unter Okklusivverband, nicht in Augen/Schleimhäute.",relSym:["ruecken","verspannung","gelenk"]},
+ traenen:{n:"Künstliche Tränen / konservierungsmittelfreie Augentropfen",w:"Nach Packungsbeilage; befeuchten und spülen. Bei eitrigen Augen ärztlich klären.",relSym:["augen_juckend","augen_eitrig"],ageNotes:[{maxM:12,t:"Bei Säuglingen mit Augenbeschwerden zuerst ärztlich vorstellen."}]},
+ stichgel:{n:"Kühlendes Gel (z. B. mit Antihistaminikum)",minM:24,minText:"Unter 2 Jahren ärztlich/apothekerlich beraten lassen.",w:"Dünn auf die betroffene Stelle, nicht auf offene Haut oder Schleimhäute.",relSym:["schwellung","juckreiz","hautroetung"]}
+};
+
+/* Krankheitsbilder */
+const COND=[
+ {id:"erkaeltung",n:"Erkältung (grippaler Infekt)",ernst:0,kurz:"Harmlose virale Infektion der oberen Atemwege. Dauert meist 7–10 Tage.",
+  s:[["schnupfen_klar",3],["nase_verstopft",2],["halsschmerz",2],["niesen",2],["husten_trocken",1],["husten_schleim",1],["heiserkeit",1],["kopfschmerz",1],["fieber",1],["muedigkeit",1],["gliederschmerz",1]],neg:["hohes_fieber","ploetzlich"],
+  rem:["trinken","ruhe","nasenspuel","suppe","luftfeucht","dampfdusche","honig","thymian","salbei","wadenwickel"],med:["paracetamol","ibuprofen","xylo","lutsch"],
+  arzt:["Fieber > 3 Tage oder > 39,5 °C","Beschwerden > 10 Tage oder erneute Verschlechterung","Atemnot, Ohren- oder starke Halsschmerzen","Säuglinge und Kleinkinder früh vorstellen"]},
+ {id:"grippe",n:"Echte Grippe (Influenza)",ernst:0,kurz:"Beginnt plötzlich mit hohem Fieber und starkem Krankheitsgefühl; schwerer als eine Erkältung.",
+  s:[["ploetzlich",3],["hohes_fieber",3],["fieber",2],["gliederschmerz",3],["schuettelfrost",2],["muedigkeit",2],["husten_trocken",2],["kopfschmerz",2],["halsschmerz",1],["appetitlos",1]],neg:["schnupfen_eitrig"],
+  rem:["ruhe","trinken","suppe","wadenwickel","ingwer","luftfeucht"],med:["paracetamol","ibuprofen","ass"],
+  arzt:["Risikogruppen (ab 60, Schwangere, Chronisch Kranke, Säuglinge) frühzeitig – antivirale Medikamente wirken nur früh","Atemnot oder Brustschmerz","Fieber > 3 Tage"]},
+ {id:"racheninfekt",n:"Rachenentzündung (meist viral)",ernst:0,kurz:"Entzündete Rachenschleimhaut mit Halsschmerz, oft Begleiter einer Erkältung.",
+  s:[["halsschmerz",3],["schluckbeschw",3],["heiserkeit",2],["lymph",1],["fieber",1],["husten_trocken",1]],neg:["belaege"],
+  rem:["salbei","gurgeln","honig","kuehlhals","halswickel","eibisch","trinken"],med:["lutsch","paracetamol","ibuprofen"],
+  arzt:["Trinken/Schlucken kaum möglich oder Speichelfluss","Beläge auf den Mandeln, Fieber > 3 Tage","Heiserkeit > 2 Wochen"]},
+ {id:"angina",n:"Mandelentzündung (Angina, ggf. Streptokokken)",ernst:1,kurz:"Oft bakteriell; Mandeln gerötet mit Belägen, Fieber. Streptokokken benötigen ärztliche Abklärung und ggf. Antibiotika.",
+  s:[["halsschmerz",3],["schluckbeschw",3],["belaege",3],["fieber",2],["hohes_fieber",1],["lymph",2]],neg:["husten_trocken","schnupfen_klar"],
+  rem:["trinken","kuehlhals","gurgeln","ruhe"],med:["paracetamol","ibuprofen","lutsch"],
+  arzt:["Bei Belägen/Fieber: ärztlicher Abstrich","Ansteckend – bei Kindern Praxis vorher anrufen","Kehlkopf-/Atemnot oder Kloßgefühl sofort"],arztImmer:"Hausmittel lindern nur – eine bakterielle Angina muss ärztlich untersucht werden."},
+ {id:"bronchitis",n:"Akute Bronchitis",ernst:0,kurz:"Entzündung der Bronchien nach viralem Infekt; Husten kann 2–3 Wochen anhalten.",
+  s:[["husten_schleim",3],["husten_trocken",2],["auswurf",2],["pfeifend",1],["fieber",1],["muedigkeit",1],["heiserkeit",1]],neg:[],
+  rem:["trinken","dampfdusche","inhal_salz","thymian","spitzwegerich","honig","zwiebelsirup","suppe","hochlagern","eibisch"],med:["hustenloeser","hustenstiller","paracetamol","ibuprofen"],
+  arzt:["Husten > 3 Wochen","Atemnot, Brustschmerz, Blut im Auswurf","Hohes Fieber > 3 Tage, Verschlechterung","Husten bei Säuglingen/Kleinkindern früh vorstellen"],
+  arztWenn:{maxAgeM:24,t:"Husten bei Kindern unter 2 Jahren bitte ärztlich abklären lassen."}},
+ {id:"pneumonie",n:"Lungenentzündung (Verdacht)",ernst:2,kurz:"Ernste Infektion des Lungengewebes – nicht mit Hausmitteln zu behandeln.",
+  s:[["hohes_fieber",3],["atemnot",3],["husten_schleim",2],["auswurf",2],["brustschmerz",2],["schuettelfrost",2],["muedigkeit",1]],neg:[],minMatch:2,
+  rem:["trinken","ruhe"],med:["paracetamol"],
+  arzt:["Bei Verdacht sofort ärztlich abklären (Röntgen, Antibiotika)","Atemnot → Notruf 112"],arztImmer:"Hausmittel ersetzen keine Behandlung – bitte zeitnah zum Arzt."},
+ {id:"sinusitis",n:"Nasennebenhöhlenentzündung",ernst:0,kurz:"Entzündung der Nebenhöhlen, meist nach Erkältung; Druck im Gesicht, zäher Schnupfen.",
+  s:[["druck_stirn",3],["schnupfen_eitrig",3],["nase_verstopft",2],["kopfschmerz",2],["fieber",1],["geruchsverlust",1]],neg:[],
+  rem:["nasenspuel","inhal_salz","dampfdusche","trinken","luftfeucht","kuehl"],med:["xylo","paracetamol","ibuprofen"],
+  arzt:["Beschwerden > 10 Tage","Starke einseitige Schmerzen, Fieber","Schwellung/Rötung um Auge → sofort"]},
+ {id:"heuschnupfen",n:"Heuschnupfen / allergischer Schnupfen",ernst:0,kurz:"Allergische Reaktion auf Pollen, Hausstaub oder Tierhaare; kein Fieber.",
+  s:[["niesen",3],["schnupfen_klar",3],["augen_juckend",3],["nase_verstopft",1],["juckreiz",1]],neg:["fieber","hohes_fieber","gliederschmerz"],
+  rem:["pollen","nasenspuel","augenkuehl"],med:["antihist","traenen","xylo"],
+  arzt:["Allergietest und Behandlungskonzept bei jährlich wiederkehrenden Beschwerden","Asthma-ähnliche Beschwerden (Husten, Pfeifen)"]},
+ {id:"mittelohr",n:"Mittelohrentzündung",ernst:1,kurz:"Häufig bei Kindern nach Erkältung; Ohrenschmerz, Fieber, Hörminderung.",
+  s:[["ohrenschmerz",3],["fieber",2],["hoerminderung",2],["schnupfen_klar",1],["quengelig",1]],neg:[],
+  rem:["zwiebelohr","nasenspuel","ruhe","hochlagern"],med:["paracetamol","ibuprofen","xylo"],
+  arzt:["Kinder unter 2 Jahren: immer","Starke Schmerzen oder Fieber > 24–48 Std.","Ausfluss aus dem Ohr, plötzlicher Hörverlust, Schwindel"],
+  arztWenn:{maxAgeM:24,t:"Ohrenschmerzen bei Kindern unter 2 Jahren immer ärztlich abklären lassen."}},
+ {id:"mdinfekt",n:"Magen-Darm-Infekt",ernst:0,kurz:"Meist viral (Noro-, Rotavirus); Durchfall und/oder Erbrechen, klingt nach 2–3 Tagen ab. Hauptgefahr: Flüssigkeitsverlust.",
+  s:[["durchfall",3],["erbrechen",3],["uebelkeit",2],["bauchkraempfe",2],["fieber",1],["bauchschmerz",1],["muedigkeit",1],["appetitlos",1]],neg:[],
+  rem:["trinken","who","schonkost","ingwer","bauchwaerme","ruhe"],med:["ors","loperamid","paracetamol"],
+  arzt:["Säuglinge/Kleinkinder früh","Kaum Urin, trockene Schleimhäute, sehr schlapp","Blut im Stuhl, hohes Fieber, starke Bauchschmerzen","Durchfall > 3 Tage"],
+  arztWenn:{maxAgeM:24,t:"Bei Säuglingen und Kleinkindern mit Erbrechen/Durchfall frühzeitig ärztlich abklären – sie trocknen schnell aus."}},
+ {id:"verstopfung",n:"Verstopfung",ernst:0,kurz:"Seltener oder harter Stuhlgang, oft durch Ballaststoff-/Flüssigkeitsmangel, Bewegungsmangel oder Umstellungen.",
+  s:[["verstopfung",3],["blaehungen",2],["bauchschmerz",1],["bauchkraempfe",1],["appetitlos",1]],neg:["fieber","erbrechen"],
+  rem:["trinken","ballast","pflaumen","leinsamen","bewegung","bauchmassage"],med:["laktulose"],
+  arzt:["Länger als 3 Wochen","Blut im Stuhl, starke Schmerzen, Erbrechen","Ungewollter Gewichtsverlust","Kinder: wiederkehrend"]},
+ {id:"reizmagen",n:"Sodbrennen / Reizmagen",ernst:0,kurz:"Säurerückfluss oder gereizter Magen, oft durch Essen, Stress oder Alkohol.",
+  s:[["sodbrennen",3],["aufstossen",2],["uebelkeit",1],["bauchschmerz",1],["blaehungen",1]],neg:["fieber","durchfall"],
+  rem:["sod","hochlagern","hafer","kamille"],med:["antazida"],
+  arzt:["Beschwerden > 2 Wochen oder nächtlich","Schluckbeschwerden, Erbrechen von Blut, schwarzer Stuhl","Ungewollter Gewichtsverlust"]},
+ {id:"blaehungen",n:"Blähungen / Verdauungsbeschwerden",ernst:0,kurz:"Gasansammlung im Darm, z. B. durch Essen, Luftschlucken; bei Babys auch „Dreimonatskoliken“.",
+  s:[["blaehungen",3],["bauchkraempfe",2],["bauchschmerz",1],["verstopfung",1],["aufstossen",1],["quengelig",1]],neg:["fieber"],
+  rem:["fenchel","pfefferminztee","bauchmassage","bauchwaerme","bewegung"],med:["simeticon"],
+  arzt:["Starke, anhaltende Schmerzen oder Erbrechen","Baby: kaum Trinken/Gedeihen, Blut im Stuhl, Fieber"]},
+ {id:"spannungskopf",n:"Spannungskopfschmerz",ernst:0,kurz:"Dumpfer, beidseitiger Druckkopfschmerz, oft mit Verspannung, Stress oder zu wenig Trinken.",
+  s:[["kopfschmerz",3],["verspannung",1],["stress",2],["muedigkeit",1]],neg:["kopf_einseitig","lichtempfindlich"],
+  rem:["trinken","pfefferminzoel","kuehl","entspannung","bewegung","dunkel"],med:["paracetamol","ibuprofen","ass"],
+  arzt:["Neuer, plötzlicher, „stärkster“ Kopfschmerz","Mit Fieber, Nackensteife, Lähmungen, Sehstörungen","Schmerzmittel an mehr als 10 Tagen/Monat"]},
+ {id:"migraene",n:"Migräne",ernst:0,kurz:"Anfallsartig, meist einseitig pochend, mit Übelkeit sowie Licht-/Lärmempfindlichkeit.",
+  s:[["kopf_einseitig",3],["lichtempfindlich",3],["uebelkeit",2],["erbrechen",1],["schwindel",1]],neg:[],
+  rem:["dunkel","kuehl","pfefferminzoel","ingwer","trinken"],med:["ibuprofen","paracetamol"],
+  arzt:["Erstmalige Migräne","Aura (Seh-/Gefühlsstörungen) neu oder verändert","Anfälle häufiger als 3 Mal pro Monat"]},
+ {id:"blase",n:"Blasenentzündung",ernst:0,kurz:"Meist bakteriell; Brennen beim Wasserlassen, häufiger Harndrang in kleinen Mengen.",
+  s:[["brennen",3],["harndrang",3],["bauchschmerz",1],["blut_urin",1]],neg:["flanken","hohes_fieber"],
+  rem:["trinken","blasentee","blasenwaerme","cranberry"],med:["ibuprofen"],
+  arzt:["Kinder, Jugendliche, Männer und Schwangere immer","Fieber, Flankenschmerz, Blut im Urin","Keine Besserung nach 2–3 Tagen oder wiederkehrend"],
+  arztWenn:{maxAgeM:216,flags:["schwanger"],t:"Harnwegsbeschwerden bei Kindern/Jugendlichen und in der Schwangerschaft immer ärztlich abklären."}},
+ {id:"niere",n:"Nierenbecken-/Harnwegsinfekt mit Nierenbeteiligung",ernst:2,kurz:"Aufsteigender Harnwegsinfekt – braucht ärztliche Behandlung.",
+  s:[["flanken",3],["fieber",2],["hohes_fieber",2],["schuettelfrost",2],["brennen",1],["harndrang",1]],neg:[],minMatch:2,
+  rem:["trinken","ruhe"],med:["paracetamol"],arzt:["Heute noch ärztlich abklären"],arztImmer:"Hausmittel ersetzen keine Behandlung – bitte zeitnah zum Arzt."},
+ {id:"bindehaut",n:"Bindehautentzündung",ernst:0,kurz:"Gerötete, juckende oder verklebte Augen – viral, bakteriell oder allergisch.",
+  s:[["augen_eitrig",3],["augen_juckend",2],["schnupfen_klar",1]],neg:[],
+  rem:["augenkuehl","augenhyg"],med:["traenen"],
+  arzt:["Schmerzen, Lichtscheu, Sehverschlechterung","Starker Eiter, Kontaktlinsenträger","Säuglinge/Neugeborene immer","Keine Besserung nach 2–3 Tagen"],
+  arztWenn:{maxAgeM:12,t:"Augenentzündungen bei Säuglingen bitte ärztlich abklären lassen."}},
+ {id:"ruecken",n:"Rücken- / Muskelverspannung",ernst:0,kurz:"Meist unspezifische Verspannung durch Haltung, Belastung oder Stress.",
+  s:[["ruecken",3],["verspannung",3],["gelenk",1],["stress",1]],neg:["fieber","hohes_fieber"],
+  rem:["waermeruecken","bewegung","arnika","entspannung"],med:["schmerzgel","paracetamol","ibuprofen"],
+  arzt:["Taubheit, Lähmung, Blasen-/Darmstörung → sofort","Nach Sturz/Unfall, mit Fieber","Länger als 4–6 Wochen"]},
+ {id:"schlaf",n:"Schlafstörung",ernst:0,kurz:"Ein- und/oder Durchschlafprobleme, oft durch Stress, Rhythmus oder Koffein.",
+  s:[["einschlaf",3],["durchschlaf",3],["unruhe",2],["stress",2],["muedigkeit",1]],neg:["fieber"],
+  rem:["schlafhyg","melisse","baldrian","milchhonig","entspannung"],med:[],
+  arzt:["Länger als 4 Wochen","Starke Tagesmüdigkeit, Atemaussetzer im Schlaf","Depressive Stimmung oder Angst"]},
+ {id:"zahnen",n:"Zahnen (Babys/Kleinkinder)",ernst:0,kurz:"Durchbrechende Milchzähne: Sabbern, Quengeligkeit, gerötetes Zahnfleisch.",
+  s:[["sabbern",3],["zahnfleisch",3],["quengelig",2],["kauen",2]],neg:["hohes_fieber"],minAgeM:3,maxAgeM:36,
+  rem:["beissring","zahnfleischmass"],med:[],
+  arzt:["Hohes Fieber, Durchfall oder starke Beschwerden sind meist keine Zahnungsfolge – ärztlich abklären"],
+  tipp:"Keine Bernsteinketten (Erstickungs-/Strangulationsgefahr) und keine betäubenden Zahnungsgele ohne ärztlichen Rat."},
+ {id:"zahnweh",n:"Zahnschmerzen / Zahnfleischentzündung",ernst:0,kurz:"Meist durch Karies, Entzündung oder Zahnfleischprobleme – braucht Zahnärztin/Zahnarzt.",
+  s:[["zahnschmerz",3],["zahnfleisch",2],["schwellung",1],["fieber",1],["kopfschmerz",1]],neg:[],
+  rem:["zahnkuehl","gurgeln","nelke"],med:["paracetamol","ibuprofen"],
+  arzt:["Zahnarzt zeitnah – Hausmittel nur zur Überbrückung","Gesichtsschwellung, Fieber, Schluckbeschwerden → sofort"]},
+ {id:"stich",n:"Insektenstich / leichte Hautreizung",ernst:0,kurz:"Lokale Reaktion mit Schwellung, Juckreiz und Rötung.",
+  s:[["schwellung",3],["juckreiz",3],["hautroetung",2],["hautausschlag",1]],neg:["fieber"],
+  rem:["stichkuehl","nichtkratzen","hautkuehl"],med:["stichgel","antihist"],
+  arzt:["Stich im Mund/Rachen oder Schwellung von Gesicht/Zunge, Atemnot → 112","Sich ausbreitende Rötung mit Fieber","Bekannte Insektengift-Allergie"]},
+ {id:"hautallergie",n:"Allergische Hautreaktion / unklarer Ausschlag",ernst:0,kurz:"Rötung, Quaddeln oder Ausschlag mit Juckreiz, z. B. durch Pflegeprodukte, Nahrung oder Pflanzen.",
+  s:[["hautausschlag",3],["juckreiz",3],["hautroetung",1],["schwellung",1]],neg:["fieber"],
+  rem:["hautkuehl","nichtkratzen","stichkuehl"],med:["antihist","stichgel"],
+  arzt:["Atemnot, Schwellung von Lippen/Zunge → 112","Ausschlag mit Fieber oder rasch fortschreitend","Länger als 1 Woche"]},
+ {id:"kinderausschlag",n:"Kinderkrankheit mit Ausschlag (z. B. Windpocken, Scharlach, Masern)",ernst:1,kurz:"Ansteckende Infektionen mit Fieber und Ausschlag – ärztlich abklären (Praxis vorher anrufen).",
+  s:[["hautausschlag",3],["fieber",2],["hohes_fieber",1],["juckreiz",1],["muedigkeit",1]],neg:[],maxAgeM:216,minMatch:2,
+  rem:["trinken","ruhe","hautkuehl","nichtkratzen","wadenwickel"],med:["paracetamol"],
+  arzt:["Immer ärztlich abklären (Ansteckung, ggf. Therapie)","Praxis vorher telefonisch informieren","Kein ASS bei Kindern/Jugendlichen"],arztImmer:"Ausschlag mit Fieber bei Kindern bitte ärztlich abklären lassen."},
+ {id:"krupp",n:"Pseudokrupp (Kehlkopfentzündung bei Kindern)",ernst:2,kurz:"Bellender Husten, Heiserkeit, ziehendes Atemgeräusch – vor allem nachts bei Kleinkindern.",
+  s:[["bellender",3],["heiserkeit",2],["stridor",3],["husten_trocken",1],["schnupfen_klar",1],["fieber",1]],neg:[],minAgeM:6,maxAgeM:96,minMatch:2,
+  rem:["krupp"],med:[],arzt:["Immer ärztlich abklären","Atemnot, blaue Lippen, Speicheln → Notruf 112"],arztImmer:"Bei bellendem Husten mit Atemgeräusch bitte sofort ärztliche Hilfe holen (112 bei Atemnot)."},
+ {id:"meningitis",n:"Hirnhautentzündung (Verdacht)",ernst:2,kurz:"Lebensbedrohliche Erkrankung – sofort in die Notaufnahme.",
+  s:[["nackensteif",3],["hohes_fieber",3],["kopfschmerz",2],["lichtempfindlich",2],["erbrechen",1],["bewusstsein",2]],neg:[],minMatch:2,
+  rem:[],med:[],arzt:["Sofort Notruf 112 / Notaufnahme"],arztImmer:"Keine Zeit mit Hausmitteln verlieren – sofort 112 / Notaufnahme."},
+ {id:"blinddarm",n:"Blinddarmentzündung (Verdacht)",ernst:2,kurz:"Wandernder Bauchschmerz, der rechts unten bleibt – muss rasch ärztlich abgeklärt werden.",
+  s:[["bauch_rechts_unten",3],["appetitlos",2],["uebelkeit",1],["erbrechen",1],["fieber",1]],neg:["durchfall"],minMatch:1,
+  rem:[],med:[],arzt:["Notaufnahme/112 – nichts essen, keine Wärme, keine Schmerzmittel einnehmen vor Abklärung"],arztImmer:"Sofort ärztlich/Notaufnahme – keine Hausmittel."}
+];
+
+/* ============================================================
+   LOGIK
+   ============================================================ */
+const STORE_KEY="hausmittel-pwa-v1";
+function ageM(p){
+  if(!p)return null;
+  if(p.age==null||p.age==="")return p.type==="adult"?216:null;
+  const a=Number(p.age);
+  return p.unit==="m"?a:a*12;
+}
+function ageText(m){
+  if(m==null)return"";
+  if(m<24)return m+(m===1?" Monat":" Monate");
+  const y=Math.floor(m/12);return y+" Jahre";
+}
+function ageFrom(m){
+  if(m<24)return"ab "+m+(m===1?" Monat":" Monaten");
+  const y=Math.round(m/12);return y===1?"ab 1 Jahr":"ab "+y+" Jahren";
+}
+function profileFlags(p){return Object.keys(FLAG_LABEL).filter(f=>p.flags&&p.flags[f]);}
+
+function evalItem(it,p,sel){
+  const am=ageM(p);const r={block:[],warn:[],notes:[],status:"ok"};
+  const flags=p.flags||{};
+  if(it.minM!=null&&it.minM>0){
+    if(am==null)r.warn.push("Alter angeben – Eignung hängt vom Alter ab ("+ageFrom(it.minM)+").");
+    else if(am<it.minM)r.block.push(it.minText||("Erst "+ageFrom(it.minM)+" geeignet."));
+  }
+  if(it.maxM!=null&&am!=null&&am>it.maxM)r.block.push("Nur bis "+ageText(it.maxM)+" üblich.");
+  for(const f in (it.avoid||{}))if(flags[f])r.block.push(it.avoid[f]||AVOID_TXT[f]);
+  for(const f in (it.caution||{}))if(flags[f])r.warn.push(it.caution[f]);
+  (it.blockSym||[]).forEach(([s,t])=>{if(sel.has(s)&&!r.block.includes(t))r.block.push(t);});
+  (it.cautionSym||[]).forEach(([s,t])=>{if(sel.has(s)&&!r.warn.includes(t))r.warn.push(t);});
+  if(it.minKg&&p.weight!=null&&Number(p.weight)<it.minKg)r.block.push("Unter "+it.minKg+" kg Körpergewicht nicht geeignet.");
+  if(it.dose&&p.type==="child"){
+    if(p.weight==null||p.weight==="")r.warn.push("Gewicht angeben: Die Dosierung bei Kindern richtet sich nach dem Körpergewicht (Dosiertabelle der Packungsbeilage).");
+    else r.notes.push("Dosierung nach Körpergewicht ("+String(p.weight).replace(".",",")+" kg) in der Dosiertabelle der Packungsbeilage ablesen – nicht nach Alter. Im Zweifel Apotheke/Kinderarzt.");
+  }
+  if(it.lowKg&&p.type==="adult"&&p.weight!=null&&p.weight!==""&&Number(p.weight)<it.lowKg)r.warn.push(it.lowKgText);
+  if(it.senior&&am!=null&&am>=780)r.warn.push(it.senior);
+  (it.ageNotes||[]).forEach(n=>{if(am!=null&&am<=n.maxM)r.notes.push(n.t);});
+  r.status=r.block.length?"blocked":r.warn.length?"caution":"ok";
+  return r;
+}
+const relevant=(it,sel)=>!it.relSym||it.relSym.some(s=>sel.has(s));
+
+function scoreConds(p,sel){
+  const am=ageM(p);const out=[];
+  if(!sel.size)return out;
+  for(const c of COND){
+    if(am!=null){
+      if(c.minAgeM!=null&&am<c.minAgeM)continue;
+      if(c.maxAgeM!=null&&am>c.maxAgeM)continue;
+    }
+    const total=c.s.reduce((a,[,w])=>a+w,0);
+    const matched=c.s.filter(([s])=>sel.has(s));
+    if(!matched.length)continue;
+    if(matched.length<(c.minMatch||1))continue;
+    const mw=matched.reduce((a,[,w])=>a+w,0);
+    const ids=new Set(c.s.map(([s])=>s));
+    let explained=0;sel.forEach(s=>{if(ids.has(s))explained++;});
+    const recall=mw/total,precision=explained/sel.size;
+    const negHits=(c.neg||[]).filter(s=>sel.has(s)).length;
+    const score=Math.max(0,Math.min(1,.65*recall+.35*precision-.12*negHits));
+    if(score<.12)continue;
+    out.push({c,score,matched:matched.map(([s])=>s)});
+  }
+  out.sort((a,b)=>b.score-a.score);
+  return out;
+}
+
+function generalWarnings(p,sel){
+  const am=ageM(p);const red=[],yel=[];
+  sel.forEach(s=>{const sy=SYM[s];if(!sy)return;
+    if(sy.warn==="rot")red.push(WARN_TXT[s]);else if(sy.warn==="gelb")yel.push(WARN_TXT[s]);});
+  const fe=sel.has("fieber")||sel.has("hohes_fieber");
+  if(am!=null&&am<3&&fe)red.unshift("Säugling unter 3 Monaten mit Fieber → sofort Kinderarzt/Notaufnahme");
+  else if(am!=null&&am<6&&fe)yel.unshift("Fieber bei Säuglingen unter 6 Monaten → heute ärztlich abklären");
+  if(am!=null&&am<12&&(sel.has("erbrechen")||sel.has("durchfall")))yel.unshift("Säuglinge trocknen bei Erbrechen/Durchfall schnell aus → ärztlich abklären");
+  if(am!=null&&am<24&&sel.has("ohrenschmerz"))yel.push("Ohrenschmerzen bei Kindern unter 2 Jahren → ärztlich abklären");
+  if(p.flags&&p.flags.schwanger&&(fe||sel.has("bauchschmerz")))yel.push("In der Schwangerschaft Fieber oder Bauchschmerzen früh ärztlich abklären");
+  if(am!=null&&am>=780&&sel.has("hohes_fieber"))yel.push("Bei älteren Menschen verlaufen Infekte schneller schwer – früh ärztlich abklären");
+  return{red:[...new Set(red)],yel:[...new Set(yel)]};
+}
+
+/* ============================================================
+   UI-ZUSTAND
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let S={profiles:[],active:null,sel:new Set(),fs:1,ai:{key:"",model:"gemini-flash-latest"},disc:false,openCats:["allg"],userToggled:false,openConds:new Set(),filter:"",editing:null,draft:null};
+function save(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify({profiles:S.profiles,active:S.active,fs:S.fs,ai:S.ai,disc:S.disc,sel:[...S.sel]}));}catch(e){}
+}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");
+    if(d){S.profiles=d.profiles||[];S.active=d.active;S.fs=d.fs||1;S.ai=Object.assign(S.ai,d.ai||{});S.disc=!!d.disc;S.sel=new Set(d.sel||[]);}}catch(e){}
+}
+const prof=()=>S.profiles.find(p=>p.id===S.active)||null;
+function applyFont(){document.documentElement.style.fontSize=(16*S.fs)+"px";}
+
+/* ---------- Profil ---------- */
+function renderProfile(){
+  const sel=$("profSel");
+  sel.innerHTML=S.profiles.length?S.profiles.map(p=>`<option value="${esc(p.id)}"${p.id===S.active?" selected":""}>${p.type==="child"?"🧒":"🧑"} ${esc(p.name||"Profil")}</option>`).join(""):`<option value="">Kein Profil</option>`;
+  const p=prof();
+  if(!p){$("profInfo").innerHTML=`<span class="muted">Bitte ein Profil anlegen (Alter/Gewicht bestimmen, welche Mittel geeignet sind).</span>`;return;}
+  const am=ageM(p);
+  let t=`<span class="tag green">${p.type==="child"?"Kind":"Erwachsene/r"}</span>`;
+  if(p.age!=null&&p.age!=="")t+=`<span class="tag">Alter: ${esc(ageText(am))}</span>`;
+  else t+=`<span class="tag amber">Alter fehlt</span>`;
+  if(p.weight!=null&&p.weight!=="")t+=`<span class="tag">${esc(String(p.weight).replace(".",","))} kg</span>`;
+  else if(p.type==="child")t+=`<span class="tag amber">Gewicht fehlt</span>`;
+  profileFlags(p).forEach(f=>t+=`<span class="tag">${esc(FLAG_LABEL[f])}</span>`);
+  $("profInfo").innerHTML=t;
+}
+function openProfileDialog(id){
+  const p=id?S.profiles.find(x=>x.id===id):null;
+  S.editing=p?p.id:null;
+  S.draft=p?JSON.parse(JSON.stringify(p)):{id:"p"+Date.now(),name:"",type:"adult",age:null,unit:"y",weight:null,flags:{}};
+  $("dpTitle").textContent=p?"Profil bearbeiten":"Neues Profil";
+  $("dpName").value=S.draft.name;$("dpAge").value=S.draft.age??"";$("dpUnit").value=S.draft.unit||"y";$("dpW").value=S.draft.weight??"";
+  document.querySelectorAll("#dlgProfile [data-f]").forEach(cb=>cb.checked=!!S.draft.flags[cb.dataset.f]);
+  $("dpDel").style.display=p?"":"none";
+  setType(S.draft.type);
+  $("dlgProfile").showModal();
+}
+function setType(t){
+  S.draft.type=t;
+  $("dpAdult").setAttribute("aria-pressed",t==="adult");$("dpChild").setAttribute("aria-pressed",t==="child");
+  $("dpUnitWrap").style.display=t==="child"?"":"none";
+  if(t==="adult")$("dpUnit").value="y";
+  $("cSchwanger").style.display=$("cStillen").style.display=t==="adult"?"":"none";
+  $("dpHint").textContent=t==="child"
+    ?"Kinder: Alter (unter 2 Jahren in Monaten) und Gewicht angeben – Mittel und Dosierung hängen davon ab."
+    :"Erwachsene: Alter/Gewicht sind optional, können aber relevant sein (z. B. ab 65 Jahren oder unter 50 kg).";
+}
+function saveProfile(){
+  const d=S.draft;
+  d.name=$("dpName").value.trim()||(d.type==="child"?"Kind":"Ich");
+  const a=$("dpAge").value;d.age=a===""?null:Math.max(0,Number(a));
+  d.unit=d.type==="child"?$("dpUnit").value:"y";
+  const w=$("dpW").value;d.weight=w===""?null:Number(w);
+  d.flags={};document.querySelectorAll("#dlgProfile [data-f]").forEach(cb=>{if(cb.checked&&!(d.type==="child"&&(cb.dataset.f==="schwanger"||cb.dataset.f==="stillen")))d.flags[cb.dataset.f]=true;});
+  const i=S.profiles.findIndex(x=>x.id===d.id);
+  if(i>=0)S.profiles[i]=d;else S.profiles.push(d);
+  S.active=d.id;save();$("dlgProfile").close();renderAll();
+}
+
+/* ---------- Symptome ---------- */
+function visibleSyms(){
+  const p=prof();const isChild=p&&p.type==="child";
+  const q=S.filter.trim().toLowerCase();
+  return Object.values(SYM).filter(s=>(!s.kids||isChild)&&(!q||s.label.toLowerCase().includes(q)));
+}
+function renderSymptoms(){
+  const syms=visibleSyms();const q=S.filter.trim()!=="";
+  $("symList").innerHTML=CATS.map(c=>{
+    const list=syms.filter(s=>s.cat===c.id);if(!list.length)return"";
+    const n=list.filter(s=>S.sel.has(s.id)).length;
+    const open=q||S.openCats.includes(c.id)||n>0;
+    return`<details class="cat" data-cat="${c.id}"${open?" open":""}><summary><span>${c.ico} ${esc(c.name)}</span><span class="cnt">${n?n+" gewählt":list.length}</span></summary><div class="chips">${
+      list.map(s=>`<button type="button" class="chip${s.warn==="rot"?" rot":""}" data-sym="${s.id}" aria-pressed="${S.sel.has(s.id)}">${esc(s.label)}</button>`).join("")}</div></details>`;
+  }).join("")||`<p class="muted">Kein Symptom gefunden.</p>`;
+}
+function renderSelected(){
+  const ids=[...S.sel].filter(id=>SYM[id]);
+  $("selChips").innerHTML=ids.map(id=>`<button type="button" class="chip" data-unsel="${id}" aria-pressed="true" title="Entfernen">${esc(SYM[id].label)} ✕</button>`).join("");
+  $("selCount").textContent=ids.length?ids.length+" Symptom"+(ids.length>1?"e":"")+" gewählt":"Noch nichts gewählt – tippe auf Symptome.";
+  document.querySelectorAll("#symList details.cat").forEach(d=>{
+    const cat=d.dataset.cat;const n=Object.values(SYM).filter(s=>s.cat===cat&&S.sel.has(s.id)).length;
+    const cnt=d.querySelector(".cnt");if(cnt&&n)cnt.textContent=n+" gewählt";
+  });
+}
+
+/* ---------- Ergebnis ---------- */
+function itemHTML(id,it,r,isMed){
+  const cls=r.status;
+  let h=`<div class="item ${cls}"><b>${isMed?"💊 ":""}${esc(it.n)}</b>`;
+  if(it.w)h+=`<div class="w">${esc(it.w)}</div>`;
+  if(it.e&&!isMed)h+=`<div class="n">Wirkung: ${esc(it.e)}</div>`;
+  r.block.forEach(t=>h+=`<div class="n stop">⛔ ${esc(t)}</div>`);
+  r.warn.forEach(t=>h+=`<div class="n warn">⚠ ${esc(t)}</div>`);
+  r.notes.forEach(t=>h+=`<div class="n">ℹ ${esc(t)}</div>`);
+  return h+"</div>";
+}
+function condHTML(res,rank,p,sel){
+  const c=res.c;
+  const pct=Math.round(res.score*100);
+  const label=pct>=60?"hohe Übereinstimmung":pct>=35?"mittlere Übereinstimmung":"geringe Übereinstimmung";
+  const open=S.openConds.has(c.id)||(rank===0&&!S.userToggled);
+  const typical=c.s.map(([s])=>s).filter(s=>SYM[s]&&(!SYM[s].kids||p.type==="child"));
+  const matchedTags=res.matched.map(s=>`<span class="tag green">✓ ${esc(SYM[s].label)}</span>`).join("");
+  const missing=typical.filter(s=>!sel.has(s)).slice(0,5).map(s=>`<span class="tag">${esc(SYM[s].label)}</span>`).join("");
+  let body=`<div class="cbody"><p style="margin:.2rem 0">${esc(c.kurz)}</p>`;
+  if(c.arztImmer)body+=`<div class="banner rot">${esc(c.arztImmer)}</div>`;
+  const am=ageM(p);
+  if(c.arztWenn&&am!=null&&(am<=c.arztWenn.maxAgeM||(c.arztWenn.flags||[]).some(f=>p.flags&&p.flags[f])))body+=`<div class="banner gelb">${esc(c.arztWenn.t)}</div>`;
+  body+=`<h3>Passende Symptome</h3><div>${matchedTags}</div>`;
+  if(missing)body+=`<div class="tab-note" style="margin-top:.3rem">Typisch, aber nicht gewählt: ${missing}</div>`;
+  // Hausmittel
+  const rems=c.rem.map(id=>({id,it:REM[id]})).filter(x=>x.it&&relevant(x.it,sel)).map(x=>({...x,r:evalItem(x.it,p,sel)}));
+  const rOk=rems.filter(x=>x.r.status!=="blocked"),rNo=rems.filter(x=>x.r.status==="blocked");
+  if(rOk.length)body+=`<h3>🌿 Hausmittel</h3>`+rOk.map(x=>itemHTML(x.id,x.it,x.r,false)).join("");
+  else if(c.rem.length===0)body+=`<h3>🌿 Hausmittel</h3><div class="muted">Keine Hausmittel – bitte ärztlich abklären.</div>`;
+  // Medikamente
+  const meds=c.med.map(id=>({id,it:MED[id]})).filter(x=>x.it&&relevant(x.it,sel)).map(x=>({...x,r:evalItem(x.it,p,sel)}));
+  const mOk=meds.filter(x=>x.r.status!=="blocked"),mNo=meds.filter(x=>x.r.status==="blocked");
+  if(mOk.length){
+    body+=`<h3>💊 Rezeptfreie Wirkstoffe (ohne Dosisangabe)</h3>`+mOk.map(x=>itemHTML(x.id,x.it,x.r,true)).join("");
+    body+=`<div class="tab-note">Dosierung, Anwendungsdauer und Gegenanzeigen immer der Packungsbeilage entnehmen bzw. in der Apotheke erfragen.</div>`;
+  }
+  const no=[...rNo.map(x=>({...x,m:false})),...mNo.map(x=>({...x,m:true}))];
+  if(no.length)body+=`<details style="margin-top:.6rem"><summary class="tab-note" style="cursor:pointer">Für dieses Profil nicht geeignet (${no.length})</summary>${no.map(x=>itemHTML(x.id,x.it,x.r,x.m)).join("")}</details>`;
+  // Arzt
+  body+=`<h3>🏥 Wann zum Arzt?</h3><ul style="margin:.2rem 0 .2rem 1.1rem;padding:0">${c.arzt.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+  if(c.tipp)body+=`<div class="banner info" style="margin-top:.6rem">${esc(c.tipp)}</div>`;
+  body+="</div>";
+  return`<details class="cond${c.ernst===2?" ernst":""}" data-cond="${c.id}"${open?" open":""}><summary><div class="ctitle"><span>${c.ernst===2?"🚨 ":c.ernst===1?"🩺 ":""}${esc(c.n)}</span><span class="pct">${pct} %</span></div><div class="meter"><i style="width:${Math.max(4,pct)}%"></i></div><div class="tab-note" style="margin-top:.2rem">${label}${c.ernst===2?" · ärztlich abklären":c.ernst===1?" · ärztliche Abklärung empfohlen":""}</div></summary>${body}</details>`;
+}
+function renderResults(){
+  const p=prof();const sel=S.sel;
+  const bn=$("banners");let b="";
+  if(!p){$("condList").innerHTML=`<p class="muted">Lege zuerst ein Profil an.</p>`;bn.innerHTML="";$("multiCard").hidden=true;updateBar([]);return;}
+  if(p.type==="child"&&(p.age==null||p.age===""))b+=`<div class="banner gelb">Bitte das <b>Alter</b> des Kindes im Profil ergänzen – viele Mittel sind altersabhängig.</div>`;
+  const gw=generalWarnings(p,sel);
+  if(gw.red.length)b+=`<div class="banner rot"><b>🚨 Warnzeichen</b><ul>${gw.red.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`;
+  if(gw.yel.length)b+=`<div class="banner gelb"><b>Bitte ärztlich abklären</b><ul>${gw.yel.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`;
+  bn.innerHTML=b;
+  if(!sel.size){$("condList").innerHTML=`<p class="muted">Wähle links Symptome aus – die möglichen Ursachen und Hausmittel erscheinen hier und aktualisieren sich bei jedem weiteren Symptom.</p>`;$("multiCard").hidden=true;updateBar([]);return;}
+  const res=scoreConds(p,sel).slice(0,8);
+  if(!res.length){$("condList").innerHTML=`<p class="muted">Keine passende Ursache in der Datenbank gefunden. Beobachte die Beschwerden, trinke ausreichend und lass dich bei Unsicherheit ärztlich beraten.</p>`;$("multiCard").hidden=true;updateBar([]);return;}
+  $("condList").innerHTML=`<p class="tab-note" style="margin-top:0">Die Prozentwerte zeigen die Übereinstimmung mit deinen Symptomen – <b>keine Diagnose</b>.</p>`+res.map((r,i)=>condHTML(r,i,p,sel)).join("");
+  // gemeinsame Hausmittel
+  const cnt={};res.slice(0,3).filter(r=>r.score>=.25&&r.c.ernst<2).forEach(r=>r.c.rem.forEach(id=>{cnt[id]=(cnt[id]||0)+1;}));
+  const multi=Object.keys(cnt).filter(id=>cnt[id]>=2&&REM[id]&&relevant(REM[id],sel)).map(id=>({id,it:REM[id],r:evalItem(REM[id],p,sel)})).filter(x=>x.r.status!=="blocked").slice(0,5);
+  const mc=$("multiCard");
+  if(multi.length){mc.hidden=false;mc.innerHTML=`<h2>🌟 Hilft bei mehreren deiner Beschwerden</h2>`+multi.map(x=>itemHTML(x.id,x.it,x.r,false)).join("");}
+  else mc.hidden=true;
+  updateBar(res);
+}
+function updateBar(res){
+  const t=$("barT");const n=S.sel.size;
+  if(!n){t.innerHTML=`<b>Keine Symptome gewählt</b><span class="muted">Tippe auf Symptome</span>`;return;}
+  const top=res[0];
+  t.innerHTML=`<b>${n} Symptom${n>1?"e":""} · ${top?esc(top.c.n):"keine Treffer"}</b><span class="muted">${top?Math.round(top.score*100)+" % Übereinstimmung":""}</span>`;
+}
+function renderAll(){renderProfile();renderSymptoms();renderSelected();renderResults();}
+
+/* ============================================================
+   KI (Google Gemini)
+   ============================================================ */
+function profileText(p){
+  if(!p)return"unbekannt";
+  const a=ageM(p);let t=(p.type==="child"?"Kind":"Erwachsene/r");
+  if(p.age!=null&&p.age!=="")t+=", Alter "+ageText(a);
+  if(p.weight!=null&&p.weight!=="")t+=", "+p.weight+" kg";
+  const f=profileFlags(p).map(x=>FLAG_LABEL[x]);if(f.length)t+=", Besonderheiten: "+f.join(", ");
+  return t;
+}
+const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt.";
+async function gemini(prompt,json){
+  const key=S.ai.key;if(!key)throw new Error("Bitte zuerst den Gemini-API-Schlüssel in den KI-Einstellungen eintragen.");
+  const models=[...new Set([S.ai.model||"gemini-flash-latest","gemini-flash-latest"])];
+  let last=null;
+  for(const m of models){
+    try{
+      const body={systemInstruction:{parts:[{text:AI_SYS}]},contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:Object.assign({temperature:.3},json?{responseMimeType:"application/json"}:{})};
+      const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(m)+":generateContent?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
+      const t=(((j.candidates||[])[0]||{}).content||{}).parts;
+      const txt=t?t.map(x=>x.text||"").join(""):"";
+      if(!txt)throw new Error("Leere Antwort der KI.");
+      return txt;
+    }catch(e){last=e;}
+  }
+  throw last||new Error("KI-Anfrage fehlgeschlagen.");
+}
+function md(t){
+  const lines=esc(t).split(/\n/);let h="",inl=false;
+  for(let l of lines){
+    l=l.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+    if(/^\s*[-*•]\s+/.test(l)){if(!inl){h+="<ul>";inl=true;}h+="<li>"+l.replace(/^\s*[-*•]\s+/,"")+"</li>";}
+    else{if(inl){h+="</ul>";inl=false;}if(l.trim())h+="<p>"+l+"</p>";}
+  }
+  return h+(inl?"</ul>":"");
+}
+function aiBusy(msg){$("aiOut").innerHTML=`<div class="ai-out"><span class="spin"></span>${esc(msg)}</div>`;}
+function aiShow(html){$("aiOut").innerHTML=`<div class="ai-out">${html}<p class="tab-note">KI-Antwort – keine ärztliche Beratung, kann Fehler enthalten.</p></div>`;}
+function aiErr(e){$("aiOut").innerHTML=`<div class="banner gelb" style="margin-top:.6rem">KI nicht verfügbar: ${esc(e.message||e)}</div>`;}
+async function aiExtract(){
+  const txt=$("aiFree").value.trim();if(!txt){aiErr("Bitte erst beschreiben, was los ist.");return;}
+  aiBusy("KI erkennt Symptome …");
+  try{
+    const p=prof();const list=Object.values(SYM).filter(s=>!s.kids||(p&&p.type==="child")).map(s=>s.id+": "+s.label).join("\n");
+    const out=await gemini(`Profil: ${profileText(p)}\n\nBeschreibung der Beschwerden:\n"""${txt}"""\n\nVerfügbare Symptome (id: Bezeichnung):\n${list}\n\nWähle nur Symptome, die in der Beschreibung ausdrücklich vorkommen oder eindeutig gemeint sind. Antworte ausschließlich als JSON: {"symptome":["id",...],"hinweis":"kurzer Hinweis oder Rückfrage (max. 2 Sätze)"}`,true);
+    let j;try{j=JSON.parse(out.replace(/^```json|```$/g,"").trim());}catch(e){throw new Error("Antwort nicht lesbar.");}
+    const ids=(j.symptome||[]).filter(id=>SYM[id]);
+    ids.forEach(id=>S.sel.add(id));
+    S.userToggled=false;
+    save();renderSymptoms();renderSelected();renderResults();
+    aiShow(`<p><b>${ids.length} Symptom${ids.length===1?"":"e"} übernommen:</b> ${ids.map(id=>esc(SYM[id].label)).join(", ")||"keine"}</p>${j.hinweis?"<p>"+esc(j.hinweis)+"</p>":""}`);
+  }catch(e){aiErr(e);}
+}
+async function aiAssess(){
+  const p=prof();if(!S.sel.size){aiErr("Bitte zuerst Symptome auswählen.");return;}
+  aiBusy("KI erstellt Einschätzung …");
+  try{
+    const res=scoreConds(p,S.sel).slice(0,4).map(r=>r.c.n+" ("+Math.round(r.score*100)+" %)").join("; ");
+    const syms=[...S.sel].filter(id=>SYM[id]).map(id=>SYM[id].label).join("; ");
+    const out=await gemini(`Profil: ${profileText(p)}\nSymptome: ${syms}\nTreffer der App-Datenbank (nur Orientierung): ${res||"keine"}\n\nGib eine kurze Einschätzung (max. ca. 180 Wörter) mit Gliederung: **Mögliche Ursachen**, **Das kann helfen** (Hausmittel, die zum Profil passen), **Vorsicht/Nicht geeignet** (bezogen auf Alter/Gewicht/Besonderheiten), **Wann zum Arzt**. Keine Dosierungen.`);
+    aiShow(md(out));
+  }catch(e){aiErr(e);}
+}
+async function aiAsk(){
+  const q=$("aiQ").value.trim();if(!q){aiErr("Bitte eine Frage eingeben.");return;}
+  aiBusy("KI antwortet …");
+  try{
+    const out=await gemini(`Profil: ${profileText(prof())}\nAktuelle Symptome: ${[...S.sel].filter(id=>SYM[id]).map(id=>SYM[id].label).join("; ")||"keine"}\n\nFrage: ${q}\n\nAntworte kurz (max. ca. 150 Wörter), ohne Dosierungen.`);
+    aiShow(md(out));
+  }catch(e){aiErr(e);}
+}
+
+/* ============================================================
+   PWA (Manifest, Icon, Service Worker)
+   ============================================================ */
+function makeIcon(size){
+  const c=document.createElement("canvas");c.width=c.height=size;const x=c.getContext("2d");
+  const g=x.createLinearGradient(0,0,size,size);g.addColorStop(0,"#3a9a72");g.addColorStop(1,"#1f5e44");
+  x.fillStyle=g;x.fillRect(0,0,size,size);
+  x.fillStyle="#fff";const u=size/10;
+  x.fillRect(size/2-u*.9,size/2-u*3,u*1.8,u*6);x.fillRect(size/2-u*3,size/2-u*.9,u*6,u*1.8);
+  x.beginPath();x.ellipse(size*.72,size*.28,u*1.6,u*.8,-Math.PI/4,0,Math.PI*2);x.fillStyle="#bfe8d1";x.fill();
+  return c.toDataURL("image/png");
+}
+function setupPWA(){
+  try{
+    const i192=makeIcon(192),i512=makeIcon(512),i180=makeIcon(180);
+    const l=document.createElement("link");l.rel="apple-touch-icon";l.href=i180;document.head.appendChild(l);
+    const f=document.createElement("link");f.rel="icon";f.href=i192;document.head.appendChild(f);
+    const base=new URL("./",location.href).href;
+    const mf={name:"Hausmittel-Ratgeber",short_name:"Hausmittel",start_url:base,scope:base,display:"standalone",background_color:"#f3f7f4",theme_color:"#2e7d5b",lang:"de",icons:[{src:i192,sizes:"192x192",type:"image/png"},{src:i512,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+    const m=document.createElement("link");m.rel="manifest";m.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:"application/manifest+json"}));document.head.appendChild(m);
+  }catch(e){}
+  if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+/* ============================================================
+   EVENTS / START
+   ============================================================ */
+function init(){
+  load();applyFont();
+  $("verTop").textContent="v"+APP_VERSION;
+  $("foot").innerHTML=`Hausmittel-Ratgeber · Version ${APP_VERSION} · Alle Daten bleiben auf diesem Gerät (außer KI-Anfragen auf Knopfdruck). Allgemeine Informationen ohne Gewähr; keine Diagnose, keine Therapie- oder Dosierungsempfehlung.`;
+  $("aiKey").value=S.ai.key||"";$("aiModel").value=S.ai.model||"gemini-flash-latest";
+  if(!S.active&&S.profiles.length)S.active=S.profiles[0].id;
+  renderAll();
+  $("profSel").onchange=e=>{S.active=e.target.value;save();S.userToggled=false;renderAll();};
+  $("profEdit").onclick=()=>{if(prof())openProfileDialog(S.active);else openProfileDialog();};
+  $("profNew").onclick=()=>openProfileDialog();
+  $("dpAdult").onclick=()=>setType("adult");$("dpChild").onclick=()=>{setType("child");if($("dpUnit").value!=="m"&&$("dpAge").value==="")$("dpUnit").value="y";};
+  $("dpSave").onclick=saveProfile;$("dpCancel").onclick=()=>$("dlgProfile").close();
+  $("dpDel").onclick=()=>{if(confirm("Profil wirklich löschen?")){S.profiles=S.profiles.filter(x=>x.id!==S.editing);S.active=S.profiles[0]?S.profiles[0].id:null;save();$("dlgProfile").close();renderAll();}};
+  $("symSearch").oninput=e=>{S.filter=e.target.value;renderSymptoms();};
+  $("symList").addEventListener("click",e=>{
+    const b=e.target.closest("[data-sym]");if(!b)return;
+    const id=b.dataset.sym;if(S.sel.has(id))S.sel.delete(id);else S.sel.add(id);
+    b.setAttribute("aria-pressed",S.sel.has(id));S.userToggled=false;
+    save();renderSelected();renderResults();
+  });
+  $("symList").addEventListener("toggle",e=>{
+    const d=e.target;if(!d.dataset||!d.dataset.cat)return;
+    const c=d.dataset.cat;S.openCats=S.openCats.filter(x=>x!==c);if(d.open)S.openCats.push(c);
+  },true);
+  $("selChips").addEventListener("click",e=>{
+    const b=e.target.closest("[data-unsel]");if(!b)return;
+    S.sel.delete(b.dataset.unsel);S.userToggled=false;save();renderSymptoms();renderSelected();renderResults();
+  });
+  $("btnReset").onclick=()=>{S.sel.clear();S.userToggled=false;S.openConds.clear();save();renderSymptoms();renderSelected();renderResults();$("aiOut").innerHTML="";};
+  $("condList").addEventListener("toggle",e=>{
+    const d=e.target;if(!d.dataset||!d.dataset.cond)return;
+    S.userToggled=true;if(d.open)S.openConds.add(d.dataset.cond);else S.openConds.delete(d.dataset.cond);
+  },true);
+  $("fMinus").onclick=()=>{S.fs=Math.max(.8,+(S.fs-.1).toFixed(2));applyFont();save();};
+  $("fPlus").onclick=()=>{S.fs=Math.min(1.6,+(S.fs+.1).toFixed(2));applyFont();save();};
+  $("btnInfo").onclick=()=>$("dlgDisc").showModal();
+  $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
+  $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
+  $("aiSave").onclick=()=>{S.ai.key=$("aiKey").value.trim();S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();$("aiStat").textContent="Gespeichert.";};
+  $("aiTest").onclick=async()=>{
+    S.ai.key=$("aiKey").value.trim();S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();
+    $("aiStat").textContent="Teste …";
+    try{await gemini("Antworte nur mit dem Wort: ok");$("aiStat").textContent="✓ Verbindung funktioniert.";}catch(e){$("aiStat").textContent="✗ "+(e.message||e);}
+  };
+  $("aiExtract").onclick=aiExtract;$("aiAssess").onclick=aiAssess;$("aiAsk").onclick=aiAsk;
+  if(!S.disc)$("dlgDisc").showModal();else if(!S.profiles.length)openProfileDialog();
+  setupPWA();
+}
+//#LOGIC_END
+if(typeof document!=="undefined"&&document.getElementById("profSel"))init();
+</script>
+</body>
+</html>
