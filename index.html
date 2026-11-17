@@ -210,7 +210,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
       <div id="aiOut"></div>
       <details style="margin-top:.8rem"><summary class="muted" style="cursor:pointer">⚙ KI-Einstellungen</summary>
         <div class="field"><label for="aiKey">Gemini-API-Schlüssel (nur auf diesem Gerät gespeichert)</label>
-          <input type="password" id="aiKey" autocomplete="off" placeholder="AIza…"></div>
+          <input type="password" id="aiKey" autocomplete="off" placeholder="AQ.… oder AIza…"></div>
         <div class="field"><label for="aiModel">Modell</label><input type="text" id="aiModel" placeholder="gemini-flash-latest"></div>
         <div class="row"><button class="btn sec" id="aiSave">Speichern</button><button class="btn sec" id="aiTest">Verbindung testen</button></div>
         <div class="muted" id="aiStat" style="margin-top:.4rem"></div>
@@ -325,7 +325,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
 <script>
 "use strict";
-const APP_VERSION="1.3.2";
+const APP_VERSION="1.3.5";
 
 /* ============================================================
    DATENBANK
@@ -1092,19 +1092,41 @@ function profileText(p){
 const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt.";
 const GBASE="https://generativelanguage.googleapis.com/v1beta/";
 const cleanKey=k=>String(k||"").replace(/[\s"'“”‘’„\u200B-\u200D\u2060\uFEFF\u00A0]/g,"").replace(/^key=/i,"").replace(/[^\x21-\x7E]/g,"");
+/* Schlüsselformate: neu "AQ." + Zeichen (Authentication Key, ca. 53 Zeichen), klassisch "AIza" + 35 Zeichen (39 gesamt) */
+const KEY_RE={aq:/^AQ\.[A-Za-z0-9._\-]{20,}$/,aiza:/^AIza[A-Za-z0-9_\-]{35}$/};
+function keyFormat(k){
+  k=cleanKey(k);
+  if(!k)return{ok:false,type:"none",msg:"Kein Schlüssel eingetragen."};
+  if(KEY_RE.aq.test(k))return{ok:true,type:"aq",msg:k.length<45?"AQ.-Schlüssel sind meist ca. 53 Zeichen lang – dieser ist evtl. abgeschnitten.":""};
+  if(KEY_RE.aiza.test(k))return{ok:true,type:"aiza",msg:""};
+  if(/^AQ\./.test(k))return{ok:false,type:"aq",msg:"AQ.-Schlüssel ist zu kurz oder enthält unzulässige Zeichen – wahrscheinlich unvollständig kopiert."};
+  if(/^AIza/.test(k))return{ok:false,type:"aiza",msg:"Ein AIza-Schlüssel hat genau 39 Zeichen – dieser hat "+k.length+" und ist wohl unvollständig oder zu lang kopiert."};
+  if(/^sk-ant-/.test(k))return{ok:false,type:"other",msg:"Das ist ein Anthropic-Schlüssel – hier wird ein Google-Gemini-Schlüssel (AQ.… oder AIza…) benötigt."};
+  if(/^sk-/.test(k))return{ok:false,type:"other",msg:"Das ist ein OpenAI-Schlüssel – hier wird ein Google-Gemini-Schlüssel (AQ.… oder AIza…) benötigt."};
+  return{ok:false,type:"other",msg:"Unbekanntes Format – Gemini-Schlüssel beginnen mit AQ. oder AIza."};
+}
+function keyInfo(){
+  const k=cleanKey(S.ai.key);if(!k)return"kein Schlüssel gespeichert";
+  const f=keyFormat(k);
+  return "Schlüssel: "+k.slice(0,4)+"…"+k.slice(-3)+" ("+k.length+" Zeichen, Format "+(f.type==="aq"?"AQ.":f.type==="aiza"?"AIza":"unbekannt")+")"+(f.msg?" – "+f.msg:"");
+}
 function apiErr(r){
-  const msg=(r.j&&r.j.error&&r.j.error.message)||("HTTP "+r.status);
-  if(r.status===400&&/api key/i.test(msg))return "API-Schlüssel ungültig. Bitte den Schlüssel in Google AI Studio neu kopieren. ("+msg+")";
-  if(r.status===403)return "Zugriff verweigert – Schlüssel nicht freigeschaltet oder auf andere Websites eingeschränkt (HTTP-Referrer). ("+msg+")";
-  if(r.status===429)return "Kontingent/Limit erreicht – später erneut versuchen. ("+msg+")";
-  return msg;
+  const e=(r.j&&r.j.error)||{};const msg=e.message||("HTTP "+r.status);
+  const code=[r.status,e.status,(e.details||[]).map(d=>d.reason).filter(Boolean)[0]].filter(Boolean).join(" / ");
+  const tail=" ["+code+"] "+msg;
+  if(r.status===400&&/api key/i.test(msg))return "API-Schlüssel ungültig – "+keyInfo()+". Schlüssel in Google AI Studio neu kopieren (ohne Anführungszeichen/Leerzeichen) oder neu erstellen."+tail;
+  if(r.status===401)return "Schlüssel nicht akzeptiert – "+keyInfo()+". Meist ist der Schlüssel abgeschnitten oder falsch kopiert."+tail;
+  if(r.status===403&&/SERVICE_BLOCKED|not supported|blocked/i.test(code+" "+msg))return "Der Schlüssel ist nicht für die Gemini API freigegeben (z. B. an Vertex/Agent Platform gebunden). Erstelle in AI Studio (aistudio.google.com/api-keys) einen neuen Schlüssel und stelle die Einschränkung auf „Gemini API“."+tail;
+  if(r.status===403)return "Zugriff verweigert – Schlüssel nicht freigeschaltet oder auf andere Websites eingeschränkt (HTTP-Referrer: reneprause-dot.github.io erlauben)."+tail;
+  if(r.status===429)return "Kontingent/Limit erreicht – später erneut versuchen."+tail;
+  return msg+" [HTTP "+r.status+"]";
 }
 /* Anfrage an Google: zuerst Schlüssel in der URL, bei Netzwerkfehler (Safari: „Load failed“) zusätzlich per Header */
 async function gfetch(path,opts){
   const key=cleanKey(S.ai.key);
   if(!key)throw new Error("Bitte zuerst den Gemini-API-Schlüssel in den KI-Einstellungen eintragen.");
   let lastErr=null;
-  for(const mode of ["url","hdr"]){
+  for(const mode of (keyFormat(key).type==="aq"?["hdr","url"]:["url","hdr"])){
     try{
       const o=Object.assign({},opts);o.headers=Object.assign({},opts&&opts.headers);
       let url=GBASE+path;
@@ -1275,10 +1297,11 @@ function init(){
   $("btnInfo").onclick=()=>$("dlgDisc").showModal();
   $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
   $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
-  $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();$("aiStat").textContent="Gespeichert ("+S.ai.key.length+" Zeichen Schlüssel).";};
+  $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();{const kf=keyFormat(S.ai.key);$("aiStat").textContent=(kf.ok?"Gespeichert. ":"Gespeichert, aber: ")+keyInfo()+".";}};
   $("aiTest").onclick=async()=>{
     S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();
-    const st=$("aiStat");st.textContent="1/2 Verbindung zu Google …";
+    const st=$("aiStat");
+    const kf=keyFormat(S.ai.key);if(!kf.ok){st.textContent="✗ "+kf.msg;return;}st.textContent="1/2 Verbindung zu Google … ("+keyInfo()+")";
     try{
       const l=await aiModels();
       st.textContent="✓ Verbindung ok ("+l.length+" Modelle verfügbar). 2/2 Modell testen …";
