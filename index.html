@@ -16,11 +16,12 @@
   --red:#b3261e;--red2:#fdeceb;--amber:#8a5a00;--amber2:#fff4dc;--blue2:#e8f0fb;
   --shadow:0 1px 3px rgba(0,0,0,.08);
 }
-@media (prefers-color-scheme:dark){
-  :root{--bg:#0f1713;--card:#18231d;--fg:#e6f0ea;--muted:#9bb0a5;--line:#2a3a31;
+:root[data-theme=dark]{--bg:#0f1713;--card:#18231d;--fg:#e6f0ea;--muted:#9bb0a5;--line:#2a3a31;
   --accent:#4cb487;--accent2:#1d3a2c;--accentfg:#06180f;--red:#ff8a80;--red2:#3a1b19;
   --amber:#ffcc66;--amber2:#3a2f12;--blue2:#18283d;--shadow:none}
-}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1713;--card:#18231d;--fg:#e6f0ea;--muted:#9bb0a5;--line:#2a3a31;
+  --accent:#4cb487;--accent2:#1d3a2c;--accentfg:#06180f;--red:#ff8a80;--red2:#3a1b19;
+  --amber:#ffcc66;--amber2:#3a2f12;--blue2:#18283d;--shadow:none}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{font-size:16px;-webkit-text-size-adjust:100%}
@@ -45,7 +46,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .btn.sec{background:var(--accent2);color:var(--fg);font-weight:500}
 .btn.danger{background:var(--red2);color:var(--red)}
 .btn:disabled{opacity:.5}
-input[type=text],input[type=number],input[type=password],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem .6rem}
+input[type=text],input[type=number],input[type=password],input[type=datetime-local],input[type=month],input[type=date],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:.55rem;padding:.5rem .6rem}
 textarea{min-height:5rem;resize:vertical}
 .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
 .row>*{flex:0 0 auto}.row>.grow{flex:1 1 8rem}
@@ -148,6 +149,31 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 .upd.new{background:var(--accent2);font-weight:600}
 .upd.err{background:var(--amber2);color:var(--amber)}
 .upd span{flex:1 1 12rem}
+a.btn{display:inline-block;text-decoration:none;text-align:center}
+.btn.sos{background:var(--red);color:#fff}
+header button.sosb{background:#b3261e;color:#fff;font-weight:700}
+.sosrow{display:flex;align-items:center;gap:.6rem;border:1px solid var(--line);border-radius:.7rem;padding:.55rem .7rem;margin:.4rem 0;text-decoration:none;color:var(--fg)}
+.sosrow b{font-size:1.25rem;min-width:7.2rem;color:var(--red)}
+.sosrow span{font-size:.88rem;color:var(--muted)}
+.bk{background:var(--blue2);color:var(--fg);padding:.5rem .9rem;border-bottom:1px solid var(--line);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.88rem}
+.bk span{flex:1 1 12rem}
+.bk button{padding:.3rem .7rem}
+textarea.sm{min-height:3rem}
+.strow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:.4rem 0}
+.strow .chk{flex:1 1 13rem;margin:0}
+.strow input[type=month],.strow input[type=text]{width:9.5rem;flex:0 0 auto}
+.rbar{position:fixed;left:.5rem;right:.5rem;bottom:4.6rem;z-index:60;background:var(--amber2);color:var(--fg);border:2px solid var(--amber);border-radius:.8rem;padding:.6rem .8rem;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.rbar .row{margin-top:.4rem}
+.tstat{display:flex;gap:.4rem;flex-wrap:wrap;margin:.4rem 0}
+svg.tchart{width:100%;height:auto;display:block}
+.trow{display:flex;gap:.5rem;align-items:center;border-bottom:1px solid var(--line);padding:.35rem 0;font-size:.92rem}
+.trow b{min-width:3.3rem}
+.trow .grow{flex:1}
+#printArea{display:none}
+@media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}body{background:#fff!important;padding:0!important}}
+.vrow{border-bottom:1px solid var(--line);padding:.5rem 0}
+.vrow .vh{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.vrow .vh b{flex:1 1 12rem}
 </style>
 </head>
 <body>
@@ -155,6 +181,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
   <h1>🌿 Hausmittel-Ratgeber<span class="ver" id="verTop"></span></h1>
   <button id="fMinus" aria-label="Schrift kleiner">A−</button>
   <button id="fPlus" aria-label="Schrift größer">A+</button>
+  <button id="btnSOS" class="sosb" aria-label="Notruf und Erste Hilfe" title="Notruf">🚑 112</button>
   <button id="btnUpd" aria-label="Auf Updates prüfen" title="Auf Update prüfen">⟳</button>
   <button id="btnInfo" aria-label="Hinweise">ⓘ</button>
   <nav class="tabs" id="tabs" aria-label="Bereiche">
@@ -162,11 +189,18 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     <button data-view="diary" aria-pressed="false">📒 Tagebuch</button>
     <button data-view="cal" aria-pressed="false">📅 Kalender</button>
     <button data-view="season" aria-pressed="false">🌦 Saison</button>
+    <button data-view="stock" aria-pressed="false">🧰 Apotheke</button>
+    <button data-view="temp" aria-pressed="false">🌡 Fieber</button>
+    <button data-view="vacc" aria-pressed="false">💉 Impfpass</button>
   </nav>
 </header>
 <div class="disc">Orientierungshilfe – <b>keine Diagnose</b> und kein Ersatz für Ärztin/Arzt oder Apotheke. Notruf <b>112</b> · Ärztlicher Bereitschaftsdienst <b>116 117</b></div>
 
 <div class="upd" id="updBar" hidden></div>
+<div class="bk" id="bkBar" hidden></div>
+<div class="bk" id="stBar" hidden></div>
+<div class="bk" id="vcBar" hidden></div>
+<div class="rbar" id="remBar" hidden></div>
 <main id="viewGuide">
   <div class="col-l">
     <section class="card" id="profileCard">
@@ -181,7 +215,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
 
     <section class="card" id="symCard">
       <h2>🩺 Symptome auswählen</h2>
-      <input type="text" id="symSearch" placeholder="Symptom suchen …" aria-label="Symptom suchen">
+      <input type="text" id="symSearch" placeholder="Symptom oder Krankheit suchen …" aria-label="Symptom oder Krankheit suchen">
       <div class="sel" id="selChips"></div>
       <div class="row" style="margin:.2rem 0 .4rem"><span class="muted" id="selCount"></span><button class="btn sec" id="btnReset" style="margin-left:auto;padding:.3rem .7rem">Zurücksetzen</button></div>
       <div id="symList"></div>
@@ -233,9 +267,12 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     <div class="row">
       <button class="btn sec" id="btnExport">Backup exportieren</button>
       <button class="btn sec" id="btnImport">Backup importieren</button>
+      <button class="btn sec" id="btnRep">📄 Arztbericht</button>
       <button class="btn danger" id="btnWipe">Alle Daten löschen</button>
     </div>
     <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <div class="field" style="margin-top:.8rem"><label for="themeSel">Darstellung</label>
+      <select id="themeSel"><option value="auto">Automatisch (wie Gerät)</option><option value="light">Hell</option><option value="dark">Dunkel</option></select></div>
   </div>
 </section>
 
@@ -257,6 +294,69 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     <div class="keys"><span><i class="lv0"></i>selten</span><span><i class="lv1"></i>gelegentlich</span><span><i class="lv2"></i>häufig</span><span><i class="lv3"></i>Hochsaison</span></div>
     <div class="heatwrap"><table class="heat" id="heat"></table></div>
     <p class="muted">Typische Muster in Mitteleuropa – nur zur Orientierung, einzelne Jahre und Regionen weichen ab. Die letzte Zeile zeigt, in welchen Monaten <b>deine</b> Tagebucheinträge begonnen haben.</p>
+  </div>
+</section>
+
+<section class="wrap view" id="viewStock" hidden>
+  <div class="card">
+    <h2>🧰 Hausapotheke</h2>
+    <p class="muted" style="margin-top:0">Hake an, was du zu Hause hast, und trage das Ablaufdatum ein (Monat/Jahr von der Packung). Vorrätige Mittel werden im Ratgeber markiert und zuerst gezeigt; ablaufende Mittel meldet die App.</p>
+    <div id="stSets"></div>
+    <input type="text" id="stSearch" placeholder="Mittel suchen …" aria-label="Mittel suchen" style="margin:.5rem 0">
+    <div id="stList"></div>
+    <h3 style="margin:.9rem 0 .2rem">Eigenes Mittel hinzufügen</h3>
+    <div class="row"><input type="text" id="stName" class="grow" placeholder="z. B. Nasenspray XY" maxlength="60" style="flex:1 1 10rem"><input type="month" id="stNewExp" aria-label="Ablaufdatum"><button class="btn" id="stAdd">Hinzufügen</button></div>
+  </div>
+</section>
+
+<section class="wrap view" id="viewTemp" hidden>
+  <div class="card">
+    <h2>🌡 Fieberkurve</h2>
+    <select id="fpTemp" aria-label="Person wählen"></select>
+    <div class="row" style="margin-top:.6rem">
+      <div class="field" style="flex:1 1 6rem;margin:0"><label for="tVal">Temperatur (°C)</label><input type="number" id="tVal" step="0.1" min="34" max="43" inputmode="decimal" placeholder="38,2"></div>
+      <div class="field" style="flex:2 1 11rem;margin:0"><label for="tAt">Zeitpunkt</label><input type="datetime-local" id="tAt"></div>
+    </div>
+    <div class="row" style="margin-top:.4rem">
+      <div class="field" style="flex:1 1 8rem;margin:0"><label for="tSite">Messort</label><select id="tSite"><option value="">–</option><option>rektal</option><option>Ohr</option><option>Stirn</option><option>Mund</option><option>Achsel</option></select></div>
+      <div class="field" style="flex:2 1 10rem;margin:0"><label for="tNote">Notiz (z. B. Mittel gegeben)</label><input type="text" id="tNote" maxlength="80" placeholder="z. B. Wadenwickel"></div>
+    </div>
+    <div class="row" style="margin-top:.6rem"><button class="btn" id="tAdd">Messwert speichern</button>
+      <select id="tRange" aria-label="Zeitraum" style="width:auto"><option value="24">24 Stunden</option><option value="72" selected>3 Tage</option><option value="168">7 Tage</option><option value="all">Alles</option></select></div>
+    <div id="tAlert"></div>
+    <div id="tChart"></div>
+    <div class="tstat" id="tStat"></div>
+    <div id="tList"></div>
+    <p class="tab-note">Normale Werte hängen von Messort, Gerät und Alter ab. Bei Erwachsenen gilt Fieber ab etwa 38,0 °C, hohes Fieber ab 39,5 °C. Bei Kindern ab 38,5 °C (Säuglinge unter 3 Monaten ab 38,0 °C, rektal gemessen), Arztbesuch bei Kindern ab 39,0 °C oder Fieber über 3 Tage. Keine Diagnose.</p>
+  </div>
+  <div class="card">
+    <h2>⏰ Erinnerungen</h2>
+    <p class="muted" style="margin-top:0">Zum Beispiel „Temperatur messen“ oder „Arzttermin“. Die App erinnert, <b>solange sie geöffnet ist</b> (eine Web-App ohne Server kann im Hintergrund keine Hinweise senden). Dosierungsintervalle trägst du selbst nach Packungsbeilage ein.</p>
+    <div class="field"><label for="rTxt">Erinnerung</label><input type="text" id="rTxt" maxlength="80" placeholder="z. B. Temperatur messen"></div>
+    <div class="row"><input type="datetime-local" id="rAt" aria-label="Zeitpunkt" style="flex:1 1 11rem">
+      <select id="rRep" aria-label="Wiederholung" style="flex:1 1 8rem"><option value="0">einmalig</option><option value="2">alle 2 Std.</option><option value="4">alle 4 Std.</option><option value="6">alle 6 Std.</option><option value="8">alle 8 Std.</option><option value="24">täglich</option></select></div>
+    <div class="row" style="margin-top:.4rem"><span class="muted">In</span><button class="btn sec" data-rin="1">1 Std.</button><button class="btn sec" data-rin="2">2 Std.</button><button class="btn sec" data-rin="4">4 Std.</button><button class="btn sec" data-rin="6">6 Std.</button></div>
+    <div class="row" style="margin-top:.6rem"><button class="btn" id="rAdd">Erinnerung anlegen</button><button class="btn sec" id="rNotif">🔔 Benachrichtigungen erlauben</button></div>
+    <div id="rList" style="margin-top:.6rem"></div>
+  </div>
+</section>
+
+<section class="wrap view" id="viewVacc" hidden>
+  <div class="card">
+    <h2>💉 Impfpass</h2>
+    <p class="muted" style="margin-top:0">Trage Impfungen aus deinem Impfpass ein. Die App zeigt die STIKO-Empfehlungen (Stand Januar 2026, vereinfacht) passend zum Alter und meldet fällige Auffrischungen. Sie ersetzt weder den Impfausweis noch die ärztliche Beratung.</p>
+    <select id="fpVacc" aria-label="Person wählen"></select>
+    <div id="vList" style="margin-top:.6rem"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin:0 0 .4rem">Impfung eintragen</h3>
+    <div class="field"><label for="vKey">Impfung</label><select id="vKey"></select></div>
+    <div class="row">
+      <div class="field grow"><label for="vDate">Datum</label><input type="date" id="vDate"></div>
+      <div class="field grow"><label for="vNote">Notiz / Chargennr.</label><input type="text" id="vNote" maxlength="60"></div>
+    </div>
+    <button class="btn" id="vAdd">Eintragen</button>
+    <p class="tab-note">Quellen: STIKO/RKI-Impfkalender 2026. Empfehlungen können sich ändern und hängen von Vorerkrankungen, Beruf und Reisen ab – im Zweifel Hausarzt/Kinderarzt fragen.</p>
   </div>
 </section>
 
@@ -284,6 +384,11 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     <label class="chk"><input type="checkbox" data-f="blutverd"><span>Nimmt Blutverdünner</span></label>
     <label class="chk"><input type="checkbox" data-f="korbbl"><span>Allergie gegen Korbblütler (Kamille, Arnika, Beifuß …)</span></label>
   </div>
+  <div class="field"><label for="dpMeds">Dauermedikamente (Name oder Wirkstoff, durch Komma getrennt)</label>
+    <textarea id="dpMeds" class="sm" placeholder="z. B. Marcumar, Ramipril, L-Thyroxin, Metformin"></textarea></div>
+  <div class="field"><label for="dpAllergy">Allergien / Unverträglichkeiten</label>
+    <textarea id="dpAllergy" class="sm" placeholder="z. B. Penicillin, Honig, Pfefferminze, Aspirin"></textarea>
+    <div class="muted" style="margin-top:.25rem">Wird nur auf diesem Gerät gespeichert. Die App erkennt gängige Wirkstoffe und Handelsnamen und blendet unpassende Mittel automatisch aus oder warnt – eine Prüfung in der Apotheke ersetzt das nicht.</div></div>
   <div class="row" style="margin-top:.8rem">
     <button class="btn" id="dpSave">Speichern</button>
     <button class="btn sec" id="dpCancel">Abbrechen</button>
@@ -311,6 +416,50 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
   <div class="row" style="margin-top:.8rem"><button class="btn" id="enSave">Speichern</button><button class="btn sec" id="enCancel">Abbrechen</button><button class="btn danger" id="enDel" style="margin-left:auto">Löschen</button></div>
 </dialog>
 
+<dialog id="dlgSOS">
+  <h2>🚑 Notruf &amp; Erste Hilfe</h2>
+  <a class="sosrow" href="tel:112"><b>112</b><span>Notruf (Feuerwehr/Rettungsdienst) – bei Atemnot, Bewusstlosigkeit, Brustschmerz, Krampfanfall, starker Blutung</span></a>
+  <a class="sosrow" href="tel:116117"><b>116 117</b><span>Ärztlicher Bereitschaftsdienst (außerhalb der Sprechzeiten, nicht lebensbedrohlich)</span></a>
+  <a class="sosrow" href="tel:+4922819240"><b>0228 19240</b><span>Giftinformationszentrum (Bonn, für NRW) – bei Vergiftungsverdacht, auch bei Kindern</span></a>
+  <a class="sosrow" href="tel:08001110111"><b>0800 111 0 111</b><span>Telefonseelsorge (kostenlos, rund um die Uhr)</span></a>
+  <h3 style="margin:.8rem 0 .2rem">Beim Notruf: die 5 W</h3>
+  <p class="muted" style="margin:0">Wo ist es? · Was ist passiert? · Wie viele Betroffene? · Welche Verletzungen/Beschwerden? · Warten auf Rückfragen.</p>
+  <h3 style="margin:.8rem 0 .2rem">Bewusstlos, aber atmet</h3>
+  <p class="muted" style="margin:0">Notruf 112 – stabile Seitenlage, Atmung beobachten.</p>
+  <h3 style="margin:.8rem 0 .2rem">Keine normale Atmung</h3>
+  <p class="muted" style="margin:0">Notruf 112 – sofort fest und schnell in der Mitte der Brust drücken (etwa 100–120-mal pro Minute, 5–6 cm tief), nicht unterbrechen; ein Defibrillator (AED) führt per Sprachansage.</p>
+  <div class="row" style="margin-top:.8rem"><button class="btn" id="sosClose">Schließen</button></div>
+</dialog>
+
+<dialog id="dlgRep">
+  <h2>📄 Arztbericht</h2>
+  <p class="muted" style="margin-top:0">Fasst die Angaben zum Mitnehmen oder Teilen zusammen (Drucken → „Als PDF sichern“ möglich).</p>
+  <div class="field"><label for="rpPid">Person</label><select id="rpPid"></select></div>
+  <label class="chk"><input type="checkbox" id="rpMed" checked><span>Dauermedikation &amp; Allergien</span></label>
+  <label class="chk"><input type="checkbox" id="rpSym" checked><span>Aktuell gewählte Symptome</span></label>
+  <label class="chk"><input type="checkbox" id="rpTemp" checked><span>Fieberverlauf</span></label>
+  <label class="chk"><input type="checkbox" id="rpDia" checked><span>Krankheitstagebuch (letzte Einträge)</span></label>
+  <label class="chk"><input type="checkbox" id="rpVac" checked><span>Impfungen</span></label>
+  <div class="row" style="margin-top:.8rem"><button class="btn" id="rpPrint">Drucken / PDF</button><button class="btn sec" id="rpFile">Als Datei (.html)</button><button class="btn sec" id="rpClose">Abbrechen</button></div>
+</dialog>
+
+<dialog id="dlgSrc">
+  <h2>Quellen &amp; Methodik</h2>
+  <p>Die Inhalte beruhen auf allgemein anerkanntem medizinischem Wissen und wurden stichprobenartig mit folgenden Quellen abgeglichen:</p>
+  <ul>
+    <li><b>STIKO/Robert Koch-Institut</b>: Impfkalender 2026 (Impfpass-Funktion)</li>
+    <li><b>Kinderärzte im Netz (BVKJ)</b> und Fachgesellschaften: Fieber bei Kindern, Warnzeichen</li>
+    <li><b>Fachinformationen/Packungsbeilagen</b>: Altersgrenzen u. a. für Xylometazolin, Loperamid, Ibuprofen, Paracetamol</li>
+    <li><b>EMA/BfArM</b>: Codein bei Kindern, NSAR in der Schwangerschaft</li>
+    <li><b>Pharmazeutische Zeitung/ABDA</b>: Pflanzliche Mittel bei Kindern, Dosierungsgrundsätze</li>
+  </ul>
+  <p class="muted">Das ist <b>keine vollständige Prüfung</b> aller Einträge und kann veraltet sein. Wirkstoffangaben ersetzen nie die Packungsbeilage; bei jedem Eintrag führt der Link „Mehr dazu“ zu geprüften Gesundheitsinformationen.</p>
+  <p class="muted">Dosierungen nennt die App bewusst nicht. Bei Fieber, Notfällen und unklaren Beschwerden gilt: ärztlich abklären, im Notfall 112.</p>
+  <div class="row"><button class="btn" id="srcClose">Schließen</button></div>
+</dialog>
+
+<div id="printArea" aria-hidden="true"></div>
+
 <dialog id="dlgDisc">
   <h2>Wichtiger Hinweis</h2>
   <p>Diese App gibt <b>allgemeine Orientierung</b> zu Hausmitteln und rezeptfreien Wirkstoffen. Sie stellt <b>keine Diagnose</b>, ersetzt keine ärztliche oder pharmazeutische Beratung und kennt deine Krankengeschichte nicht.</p>
@@ -320,12 +469,12 @@ footer{max-width:1200px;margin:0 auto;padding:0 .8rem 1rem;color:var(--muted);fo
     <li>Dosierungen werden bewusst <b>nicht</b> genannt – bitte Packungsbeilage bzw. Apotheke nutzen (bei Kindern nach <b>Körpergewicht</b>).</li>
     <li>Die KI kann sich irren. Ihre Antworten sind kein medizinischer Rat.</li>
   </ul>
-  <button class="btn" id="discOk">Verstanden</button>
+  <div class="row"><button class="btn" id="discOk">Verstanden</button><button class="btn sec" id="btnSrc">Quellen &amp; Methodik</button></div>
 </dialog>
 
 <script>
 "use strict";
-const APP_VERSION="1.5.0";
+const APP_VERSION="1.8.0";
 
 /* ============================================================
    DATENBANK
@@ -339,7 +488,7 @@ const CATS=[
 ];
 // [id, Label, Kategorie, Warnstufe(rot|gelb), nurKinder]
 const SYM_RAW=[
- ["fieber","Fieber (38,0–39,4 °C)","allg"],
+ ["fieber","Fieber (38,0–39,4 °C; bei Kindern ab 38,5 °C)","allg"],
  ["hohes_fieber","Hohes Fieber (ab 39,5 °C)","allg","gelb"],
  ["fieber_lange","Fieber länger als 3 Tage","allg","gelb"],
  ["schuettelfrost","Schüttelfrost","allg"],
@@ -655,7 +804,7 @@ const REM={
 /* Rezeptfreie Wirkstoffe (ohne Dosisangaben!) */
 const MED={
  paracetamol:{n:"Paracetamol (Fieber/Schmerz)",minM:3,minText:"Unter 3 Monaten nur nach ärztlicher Anweisung.",dose:true,lowKg:50,lowKgText:"Unter 50 kg Körpergewicht gelten reduzierte Höchstmengen – Packungsbeilage/Apotheke beachten.",caution:{niere:"Bei Leber-/Nierenerkrankung vorher ärztlich klären.",schwanger:"In der Schwangerschaft gilt Paracetamol als Mittel der Wahl – so kurz und niedrig dosiert wie möglich, Rücksprache empfohlen."},w:"Fiebersenkend und schmerzlindernd. Mehrfachpräparate prüfen (nicht doppelt Paracetamol nehmen). Selbstmedikation bei Fieber max. ca. 3 Tage, bei Schmerzen ca. 4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","ohr_zug","prellung","hautbrennen","verbrennung","zerrung","sehne","ischias","schiefhals","zahn_abszess","ohrspeichel","ruecken_ploetzlich","muskelkater","hand_fuss","ringel"],ageNotes:[{maxM:6,t:"Fieber bei Säuglingen: Kinderärztin/Kinderarzt einbeziehen."}]},
- ibuprofen:{n:"Ibuprofen (Fieber/Schmerz/Entzündung)",minM:6,minText:"Erst ab 6 Monaten.",minKg:6,dose:true,avoid:{magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",niere:"Bei Nierenerkrankung nicht geeignet.",schwanger:"In der Schwangerschaft nicht in Eigenregie (im letzten Drittel nicht anwenden) – ärztlich klären."},caution:{asthma:"Kann bei Asthma Anfälle auslösen – Vorsicht.",blutverd:"Blutungsrisiko erhöht – nur nach ärztlicher Rücksprache.",stillen:"Kurzzeitig meist vertretbar – Rücksprache."},cautionSym:[["durchfall","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["erbrechen","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["dehydration","Bei Austrocknung nicht anwenden."]],senior:"Ab 65 Jahren erhöhtes Risiko für Magen-, Nieren- und Herz-Kreislauf-Nebenwirkungen – ärztlich/Apotheke abklären.",w:"Schmerzlindernd, fiebersenkend, entzündungshemmend. Mit einer Mahlzeit einnehmen. Selbstmedikation max. ca. 3–4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","brennen","ohr_zug","prellung","menstruation_schmerz","hautbrennen","verbrennung","zerrung","sehne","ischias","schiefhals","gicht","zahn_abszess","ruecken_ploetzlich","muskelkater"]},
+ ibuprofen:{n:"Ibuprofen (Fieber/Schmerz/Entzündung)",minM:6,minText:"Zugelassen ab ca. 3 Monaten und 5–6 kg; hier vorsichtshalber erst ab 6 Monaten – bei jüngeren Säuglingen nur nach ärztlicher Anweisung.",minKg:6,dose:true,avoid:{magen:"Bei Magen-/Darmgeschwür oder empfindlichem Magen nicht geeignet.",niere:"Bei Nierenerkrankung nicht geeignet.",schwanger:"In der Schwangerschaft nicht in Eigenregie: ab der 20. Woche meiden (Nierenrisiko beim Kind), ab der 28. Woche nie; Paracetamol ist erste Wahl – ärztlich klären."},caution:{asthma:"Kann bei Asthma Anfälle auslösen – Vorsicht.",blutverd:"Blutungsrisiko erhöht – nur nach ärztlicher Rücksprache.",stillen:"Kurzzeitig meist vertretbar – Rücksprache."},cautionSym:[["durchfall","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["erbrechen","Bei Durchfall/Erbrechen (Flüssigkeitsverlust) die Nieren nicht zusätzlich belasten – eher Paracetamol."],["dehydration","Bei Austrocknung nicht anwenden."]],senior:"Ab 65 Jahren erhöhtes Risiko für Magen-, Nieren- und Herz-Kreislauf-Nebenwirkungen – ärztlich/Apotheke abklären.",w:"Schmerzlindernd, fiebersenkend, entzündungshemmend. Mit einer Mahlzeit einnehmen. Selbstmedikation max. ca. 3–4 Tage.",relSym:["fieber","hohes_fieber","kopfschmerz","kopf_einseitig","gliederschmerz","halsschmerz","schluckbeschw","ohrenschmerz","zahnschmerz","ruecken","gelenk","verspannung","brennen","ohr_zug","prellung","menstruation_schmerz","hautbrennen","verbrennung","zerrung","sehne","ischias","schiefhals","gicht","zahn_abszess","ruecken_ploetzlich","muskelkater"]},
  ass:{n:"Acetylsalicylsäure (ASS)",minM:216,minText:"Bei Kindern und Jugendlichen mit Fieber/Infekt nicht anwenden (Gefahr des Reye-Syndroms).",avoid:{magen:"Bei Magen-/Darmgeschwür nicht geeignet.",blutverd:"Mit Blutverdünnern nicht kombinieren.",schwanger:"In der Schwangerschaft nicht anwenden.",stillen:"In der Stillzeit nur nach Rücksprache."},caution:{asthma:"Kann bei Asthma Anfälle auslösen."},w:"Schmerz- und fiebersenkend; nur Erwachsene. Selbstmedikation max. ca. 3–4 Tage.",relSym:["kopfschmerz","kopf_einseitig","gliederschmerz","fieber","hohes_fieber"]},
  xylo:{n:"Abschwellendes Nasenspray (Xylometazolin u. a.)",minM:24,minText:"Unter 2 Jahren nur nach ärztlicher Anweisung.",dose:false,caution:{schwanger:"Nur kurz und nach Rücksprache.",stillen:"Nur kurz und nach Rücksprache."},ageNotes:[{maxM:72,t:"Für Kinder nur speziell dafür zugelassene, niedriger dosierte Kinder-Zubereitung verwenden."}],w:"Nicht länger als ca. 5–7 Tage anwenden (sonst Gewöhnung/Schleimhautschäden), nicht dauerhaft. Vor allem vor dem Schlafen.",relSym:["nase_verstopft","schnupfen_klar","schnupfen_eitrig","druck_stirn"]},
  lutsch:{n:"Lutschtabletten / Halsspray (z. B. Salbei, Isländisch Moos)",minM:72,minText:"Lutschtabletten erst ab ca. 6 Jahren (Verschluckungsgefahr), Mentholsprays bei kleinen Kindern nicht.",caution:{schwanger:"Salbei-/Mentholhaltige Präparate nur nach Rücksprache."},w:"Nach Packungsbeilage; lindern Halsschmerz und Heiserkeit.",relSym:["halsschmerz","schluckbeschw","heiserkeit"]},
@@ -670,7 +819,7 @@ const MED={
  schmerzgel:{n:"Schmerzgel (z. B. Ibuprofen- oder Diclofenac-Gel)",minM:144,minText:"Erst ab 12 Jahren.",caution:{schwanger:"In der Schwangerschaft nur nach Rücksprache.",asthma:"Bei Asthma/NSAR-Empfindlichkeit Vorsicht."},w:"Auf intakte Haut dünn auftragen, nicht unter Okklusivverband, nicht in Augen/Schleimhäute.",relSym:["ruecken","verspannung","gelenk","prellung","zerrung","sehne","ischias","schiefhals","muskelkater"]},
  traenen:{n:"Künstliche Tränen / konservierungsmittelfreie Augentropfen",w:"Nach Packungsbeilage; befeuchten und spülen. Bei eitrigen Augen ärztlich klären.",relSym:["augen_juckend","augen_eitrig","lidrand","augen_trocken","fremdkoerper_auge"],ageNotes:[{maxM:12,t:"Bei Säuglingen mit Augenbeschwerden zuerst ärztlich vorstellen."}]},
  stichgel:{n:"Kühlendes Gel (z. B. mit Antihistaminikum)",minM:24,minText:"Unter 2 Jahren ärztlich/apothekerlich beraten lassen.",w:"Dünn auf die betroffene Stelle, nicht auf offene Haut oder Schleimhäute.",relSym:["schwellung","juckreiz","hautroetung"]},
- pelargonium:{pf:1,n:"Pelargonium-Extrakt (pflanzlich, bei Bronchitis/Erkältung)",minM:12,minText:"Erst ab 1 Jahr.",caution:{niere:"Bei Lebererkrankung nur nach Rücksprache.",blutverd:"Mit Blutverdünnern nur nach Rücksprache.",schwanger:"Datenlage unzureichend – Rücksprache.",stillen:"Datenlage unzureichend – Rücksprache."},w:"Nach Packungsbeilage; kann Dauer und Stärke der Beschwerden verkürzen. Bei Kindern altersgerechte Zubereitung wählen.",relSym:["husten_schleim","husten_trocken","halsschmerz","auswurf"]},
+ pelargonium:{ageNotes:[{maxM:72,t:"Unter 6 Jahren nur nach Rücksprache mit Ärztin/Arzt oder Apotheke."}],pf:1,n:"Pelargonium-Extrakt (pflanzlich, bei Bronchitis/Erkältung)",minM:12,minText:"Erst ab 1 Jahr.",caution:{niere:"Bei Lebererkrankung nur nach Rücksprache.",blutverd:"Mit Blutverdünnern nur nach Rücksprache.",schwanger:"Datenlage unzureichend – Rücksprache.",stillen:"Datenlage unzureichend – Rücksprache."},w:"Nach Packungsbeilage; kann Dauer und Stärke der Beschwerden verkürzen. Bei Kindern altersgerechte Zubereitung wählen.",relSym:["husten_schleim","husten_trocken","halsschmerz","auswurf"]},
  efeu:{pf:1,n:"Efeublätter-Extrakt (pflanzlich, Hustenlöser)",minM:24,minText:"Unter 2 Jahren nicht ohne ärztlichen Rat.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Löst Schleim und erleichtert das Abhusten; nach Packungsbeilage, viel trinken.",relSym:["husten_schleim","husten_trocken"]},
  cineol:{pf:1,n:"Cineol (Eukalyptus-Kapseln, pflanzlich)",minM:144,minText:"Erst ab 12 Jahren.",caution:{asthma:"Kann bei Asthma Atemwege reizen.",schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache.",niere:"Bei Leberleiden nur nach Rücksprache."},w:"Schleimlösend und entzündungshemmend bei Bronchitis und Nebenhöhlenbeschwerden; nach Packungsbeilage.",relSym:["husten_schleim","nase_verstopft","druck_stirn","schnupfen_eitrig"]},
  nnh_pf:{pf:1,n:"Pflanzliche Kombination bei Nebenhöhlenbeschwerden (z. B. Enzian, Primel, Holunder)",minM:72,minText:"Erst ab ca. 6 Jahren.",caution:{schwanger:"Nur nach Rücksprache.",stillen:"Nur nach Rücksprache."},w:"Nach Packungsbeilage; Tropfen enthalten teils Alkohol.",relSym:["druck_stirn","schnupfen_eitrig","nase_verstopft"]},
@@ -707,10 +856,13 @@ const MED={
  vaginal_pilz:{n:"Antipilzmittel für die Scheide (z. B. Clotrimazol)",minM:216,minText:"Nur für Erwachsene; bei Jugendlichen ärztlich klären.",avoid:{schwanger:"In der Schwangerschaft nur ärztlich."},blockSym:[["fieber","Bei Fieber oder Unterbauchschmerzen ärztlich abklären."],["bauchschmerz","Bei Unterbauchschmerzen ärztlich abklären."]],w:"Nur anwenden, wenn die Beschwerden bekannt sind; beim ersten Mal ärztliche Abklärung. Nach Packungsbeilage zu Ende anwenden, Partner ggf. mitbehandeln.",relSym:["scheidenjucken"]},
  nagellack_pilz:{n:"Antimykotischer Nagellack (z. B. Amorolfin)",minM:216,minText:"Nur für Erwachsene.",avoid:{schwanger:"In der Schwangerschaft nur ärztlich."},w:"1–2× wöchentlich nach Packungsbeilage auftragen, wochen- bis monatelang bis zum Herauswachsen; bei mehr als 2 Nägeln oder Matrixbefall ärztlich.",relSym:["nagelpilz"]},
  schuppen_shampoo:{n:"Anti-Schuppen-Shampoo (z. B. Zinkpyrithion/Ketoconazol)",minM:144,minText:"Bei Kindern ärztlich abklären.",w:"Nach Packungsbeilage mehrmals wöchentlich anwenden, einige Minuten einwirken lassen; Augen aussparen.",relSym:["kopfschuppen"]},
- kuerbis_pf:{n:"Kürbissamen-/Brennnesselwurzel-Präparate (pflanzlich)",pf:1,minM:600,minText:"Nur für Männer ab etwa 50 Jahren nach ärztlicher Abklärung.",w:"Nach Packungsbeilage; lindert nur Beschwerden, verkleinert die Prostata nicht. Vorsorge und Abklärung bleiben wichtig.",relSym:["nykturie"]}
+ kuerbis_pf:{n:"Kürbissamen-/Brennnesselwurzel-Präparate (pflanzlich)",pf:1,minM:600,minText:"Nur für Männer ab etwa 50 Jahren nach ärztlicher Abklärung.",w:"Nach Packungsbeilage; lindert nur Beschwerden, verkleinert die Prostata nicht. Vorsorge und Abklärung bleiben wichtig.",relSym:["nykturie"]},
+ sonnenschutz:{n:"Sonnenschutzmittel (LSF 30–50)",minM:12,minText:"Säuglinge unter 1 Jahr nicht in die direkte Sonne: Schatten, Kleidung, Hut.",w:"Großzügig 20–30 Minuten vor dem Sonnen auftragen, alle 2 Stunden und nach dem Baden erneut; Mittagssonne meiden.",relSym:["hautbrennen","sonnenallergie"]},
+ insektenschutz:{n:"Insektenschutzmittel (z. B. Icaridin)",minM:24,minText:"Unter 2 Jahren nur Kleidung, Moskitonetz und Schutzgitter nutzen.",w:"Nach Packungsbeilage auf unbedeckte Haut auftragen, nicht auf Wunden, Schleimhäute oder Hände kleiner Kinder (Mund/Augen).",relSym:["schwellung","zecke","juckreiz"]}
 };
 
 /* Krankheitsbilder */
+Object.keys(REM).forEach(k=>{REM[k].id=k;});Object.keys(MED).forEach(k=>{MED[k].id=k;});
 const COND=[
  {id:"erkaeltung",n:"Erkältung (grippaler Infekt)",ernst:0,kurz:"Harmlose virale Infektion der oberen Atemwege. Dauert meist 7–10 Tage.",
   s:[["schnupfen_klar",3],["nase_verstopft",2],["halsschmerz",2],["niesen",2],["husten_trocken",1],["husten_schleim",1],["heiserkeit",1],["kopfschmerz",1],["fieber",1],["muedigkeit",1],["gliederschmerz",1]],neg:["hohes_fieber","ploetzlich"],
@@ -807,7 +959,7 @@ const COND=[
   arzt:["Zahnarzt zeitnah – Hausmittel nur zur Überbrückung","Gesichtsschwellung, Fieber, Schluckbeschwerden → sofort"]},
  {id:"stich",n:"Insektenstich / leichte Hautreizung",ernst:0,kurz:"Lokale Reaktion mit Schwellung, Juckreiz und Rötung.",
   s:[["schwellung",3],["juckreiz",3],["hautroetung",2],["hautausschlag",1]],neg:["fieber"],
-  rem:["stichkuehl","nichtkratzen","hautkuehl"],med:["stichgel","antihist","hydrocortison"],
+  rem:["stichkuehl","nichtkratzen","hautkuehl"],med:["stichgel","antihist","hydrocortison","insektenschutz"],
   arzt:["Stich im Mund/Rachen oder Schwellung von Gesicht/Zunge, Atemnot → 112","Sich ausbreitende Rötung mit Fieber","Bekannte Insektengift-Allergie"]},
  {id:"hautallergie",n:"Allergische Hautreaktion / unklarer Ausschlag",ernst:0,kurz:"Rötung, Quaddeln oder Ausschlag mit Juckreiz, z. B. durch Pflegeprodukte, Nahrung oder Pflanzen.",
   s:[["hautausschlag",3],["juckreiz",3],["hautroetung",1],["schwellung",1]],neg:["fieber"],
@@ -857,7 +1009,7 @@ const COND=[
   arzt:["Bläschen in Augennähe → sofort","Neugeborene, Schwangere, geschwächtes Immunsystem","Sehr häufige Schübe oder Heilung > 2 Wochen"]},
  {id:"sonnenbrand",n:"Sonnenbrand",ernst:0,kurz:"Hautverbrennung durch UV-Strahlung mit Rötung und Brennen, oft nach 4–6 Stunden sichtbar.",
   s:[["hautbrennen",3],["hautroetung",2],["blasen",1],["schwellung",1],["kopfschmerz",1],["fieber",1]],neg:[],
-  rem:["sonne_meiden","aloe","stichkuehl","trinken"],med:["dexpanthenol","ibuprofen","paracetamol"],
+  rem:["sonne_meiden","aloe","stichkuehl","trinken"],med:["dexpanthenol","ibuprofen","paracetamol","sonnenschutz"],
   arzt:["Großflächige Blasen","Fieber, Schüttelfrost, Übelkeit (Sonnenstich)","Säuglinge und Kleinkinder immer"],
   arztWenn:{maxAgeM:12,t:"Sonnenbrand bei Säuglingen bitte ärztlich abklären lassen."}},
  {id:"verbrennung",n:"Leichte Verbrennung / Verbrühung",ernst:0,kurz:"Oberflächliche Hautschädigung durch Hitze: Rötung und Schmerz (1. Grad), ggf. Blasen (2. Grad).",
@@ -871,7 +1023,7 @@ const COND=[
   arzt:["Tiefe, klaffende Wunden (Nähen innerhalb ca. 6 Std.)","Bissverletzung, Fremdkörper","Tetanusimpfung älter als 10 Jahre","Zunehmende Rötung, Eiter, Fieber","Blutung stoppt nicht nach 10 Min. Druck"]},
  {id:"zecke",n:"Zeckenstich",ernst:0,kurz:"Zecken können Borreliose und FSME übertragen – frühes Entfernen senkt das Risiko.",
   s:[["zecke",3],["hautroetung",1],["fieber",1],["gliederschmerz",1],["kopfschmerz",1]],neg:[],
-  rem:["zecke_entf"],med:[],
+  rem:["zecke_entf"],med:["insektenschutz"],
   arzt:["Wachsende Rötung (Wanderröte) in den Wochen danach","Fieber, Kopf-/Gliederschmerz nach Zeckenstich","Teile der Zecke stecken in der Haut","FSME-Impfstatus im Risikogebiet klären"]},
  {id:"nasenbluten",n:"Nasenbluten",ernst:0,kurz:"Meist harmlos durch trockene Schleimhaut oder Schnäuzen/Nasebohren.",
   s:[["nasenbluten",3]],neg:[],
@@ -1159,7 +1311,7 @@ const COND=[
   arzt:["Allergietest und ggf. Hyposensibilisierung ärztlich","Pfeifende Atmung oder nächtlicher Husten (Asthma)"]},
  {id:"sonnenallergie",n:"Sonnenallergie (polymorphe Lichtdermatose)",ernst:0,kurz:"Juckende Knötchen oder Bläschen einige Stunden bis Tage nach Sonnenkontakt.",
   s:[["sonnenallergie",3],["juckreiz",2],["hautroetung",1],["blasen",1]],neg:[],minAgeM:72,
-  rem:["sonne_meiden","hautkuehl","aloe"],med:["antihist","hydrocortison"],
+  rem:["sonne_meiden","hautkuehl","aloe"],med:["antihist","hydrocortison","sonnenschutz"],
   arzt:["Starke Blasenbildung oder Fieber","Wiederholt jedes Jahr","Schleimhautbeteiligung"]},
  {id:"mastitis",n:"Brustentzündung / Milchstau (Stillzeit)",ernst:1,kurz:"Gerötete, harte, schmerzhafte Brust beim Stillen, ggf. mit Fieber.",
   s:[["brust_stillen",3],["fieber",2],["hautroetung",1],["gliederschmerz",1]],neg:[],minAgeM:216,minMatch:1,
@@ -1225,9 +1377,50 @@ function ageFrom(m){
 }
 function profileFlags(p){return Object.keys(FLAG_LABEL).filter(f=>p.flags&&p.flags[f]);}
 
+/* Dauermedikation / Allergien -> abgeleitete Flags und Mittel-Regeln */
+const MED_RULES=[
+ {re:/marcumar|phenprocoumon|warfarin|coumadin|xarelto|rivaroxaban|eliquis|apixaban|pradaxa|dabigatran|edoxaban|lixiana|clopidogrel|plavix|prasugrel|ticagrelor|brilique|heparin|\bass\b|aspirin|acetylsal/i,flag:"blutverd"},
+ {re:/salbutamol|formoterol|salmeterol|budesonid|symbicort|berodual|spiriva|tiotropium|montelukast|foster|seretide|asthma/i,flag:"asthma"},
+ {re:/ibuprofen|diclofenac|naproxen|etoricoxib|arcoxia|voltaren|\bibu\b|dolormin/i,items:{ibuprofen:["warn","Du nimmst bereits ein entzündungshemmendes Schmerzmittel – nicht doppelt anwenden."],ass:["warn","Du nimmst bereits ein entzündungshemmendes Schmerzmittel – nicht doppelt anwenden."]}},
+ {re:/paracetamol|ben-?u-?ron|grippostad/i,items:{paracetamol:["warn","Paracetamol steckt bereits in deiner Dauermedikation – nicht doppelt anwenden."]}},
+ {re:/prednisolon|prednison|dexamethason|cortison|decortin|methylprednisolon/i,items:{ibuprofen:["warn","Zusammen mit Cortison-Tabletten steigt das Magenblutungsrisiko – vorher Apotheke/Arzt fragen."],ass:["warn","Zusammen mit Cortison-Tabletten steigt das Magenblutungsrisiko – vorher Apotheke/Arzt fragen."]}},
+ {re:/ramipril|enalapril|lisinopril|candesartan|losartan|valsartan|telmisartan|olmesartan|\bhct\b|hydrochlorothiazid|torasemid|furosemid|spironolacton|xipamid|delix|diovan|beloc/i,items:{ibuprofen:["warn","Mit Blutdruck- oder Entwässerungsmitteln kann Ibuprofen die Nieren belasten – vorher Apotheke/Arzt fragen."],ass:["warn","Mit Blutdruck- oder Entwässerungsmitteln kann ASS die Nieren belasten – vorher Apotheke/Arzt fragen."]}},
+ {re:/lithium|methotrexat|\bmtx\b/i,items:{ibuprofen:["block","Wechselwirkung mit Lithium/Methotrexat – nur nach ärztlicher Rücksprache."],ass:["block","Wechselwirkung mit Lithium/Methotrexat – nur nach ärztlicher Rücksprache."]}},
+ {re:/citalopram|sertralin|escitalopram|fluoxetin|paroxetin|venlafaxin|duloxetin|johanniskraut/i,items:{ibuprofen:["warn","Mit diesen Antidepressiva ist das Blutungsrisiko erhöht – vorher Apotheke/Arzt fragen."],ass:["warn","Mit diesen Antidepressiva ist das Blutungsrisiko erhöht – vorher Apotheke/Arzt fragen."]}},
+ {re:/thyroxin|euthyrox|levothyrox|jodthyrox|thyronajod/i,items:{antazida:["warn","Mindestens 4 Stunden Abstand zu Schilddrüsentabletten halten."],magnesium:["warn","Mindestens 4 Stunden Abstand zu Schilddrüsentabletten halten."],zink:["warn","Zink und Schilddrüsentabletten zeitlich getrennt einnehmen (Apotheke fragen)."]}},
+ {re:/ciprofloxacin|levofloxacin|moxifloxacin|norfloxacin|doxycyclin|tetracyclin|minocyclin/i,items:{antazida:["warn","Mit diesem Antibiotikum zeitlich versetzt einnehmen (Wirkverlust) – Apotheke fragen."],magnesium:["warn","Mit diesem Antibiotikum zeitlich versetzt einnehmen (Wirkverlust) – Apotheke fragen."]}},
+ {re:/digoxin|digitoxin|lanitop/i,items:{antazida:["warn","Kann die Aufnahme von Digoxin stören – Abstand/Apotheke fragen."],magnesium:["warn","Kann die Aufnahme von Digoxin stören – Abstand/Apotheke fragen."]}},
+ {re:/diazepam|lorazepam|tavor|zopiclon|zolpidem|opipramol|doxepin|amitriptylin|mirtazapin|promethazin|pregabalin|gabapentin|baclofen|morphin|tramadol|oxycodon|tilidin/i,items:{dimenhydrinat:["warn","Verstärkt Müdigkeit und Benommenheit zusammen mit deinen Beruhigungs-/Schmerzmitteln."],antihist:["warn","Kann zusammen mit deinen Beruhigungs-/Schmerzmitteln stark müde machen."]}},
+ {re:/metformin|insulin|diabetes|glibenclamid|empagliflozin|jardiance|sitagliptin|januvia/i,items:{honig:["warn","Enthält Zucker/Honig – bei Diabetes Blutzucker beachten."],milchhonig:["warn","Enthält Zucker/Honig – bei Diabetes Blutzucker beachten."],zwiebelsirup:["warn","Enthält Zucker/Honig – bei Diabetes Blutzucker beachten."],pflaumen:["warn","Enthält natürlichen Zucker – bei Diabetes Blutzucker beachten."]}}
+];
+const ALLERGY_RULES=[
+ {re:/kamille|korbbl|arnika|beifu(ß|ss)|ambrosia|sonnenblume|schafgarbe|ringelblume|chrysanthem/i,flag:"korbbl"},
+ {re:/nsar|nsaid|ibuprofen|diclofenac|naproxen|schmerzmittel/i,items:{ibuprofen:["block","Als Allergie/Unverträglichkeit gegen Schmerzmittel hinterlegt."],ass:["block","Als Allergie/Unverträglichkeit gegen Schmerzmittel hinterlegt."],weide:["block","Enthält Salicin (ASS-verwandt) – bei Schmerzmittel-Unverträglichkeit meiden."]}},
+ {re:/aspirin|\bass\b|acetylsalicyl|salicyl/i,items:{ass:["block","Als Allergie gegen ASS/Salicylate hinterlegt."],weide:["block","Enthält Salicin (ASS-verwandt) – bei ASS-Allergie meiden."],ibuprofen:["warn","Bei ASS-Allergie sind Kreuzreaktionen möglich – vorher Apotheke/Arzt fragen."]}},
+ {re:/paracetamol/i,items:{paracetamol:["block","Als Allergie/Unverträglichkeit gegen Paracetamol hinterlegt."]}},
+ {re:/honig|propolis|bienen/i,items:{honig:["block","Honig als Allergie/Unverträglichkeit hinterlegt."],milchhonig:["block","Honig als Allergie/Unverträglichkeit hinterlegt."],zwiebelsirup:["block","Honig als Allergie/Unverträglichkeit hinterlegt."]}},
+ {re:/pfefferminz|menthol|minze/i,items:{pfefferminztee:["block","Pfefferminze/Menthol als Unverträglichkeit hinterlegt."],pfefferminzoel:["block","Pfefferminze/Menthol als Unverträglichkeit hinterlegt."],pfefferminz_kaps:["block","Pfefferminze/Menthol als Unverträglichkeit hinterlegt."]}},
+ {re:/zwiebel|lauch|knoblauch/i,items:{zwiebelsirup:["block","Zwiebelgewächse als Unverträglichkeit hinterlegt."],zwiebelohr:["block","Zwiebelgewächse als Unverträglichkeit hinterlegt."]}},
+ {re:/ingwer/i,items:{ingwer:["block","Ingwer als Unverträglichkeit hinterlegt."],ingwer_schwanger:["block","Ingwer als Unverträglichkeit hinterlegt."]}},
+ {re:/fenchel|anis|kümmel|sellerie|doldenbl/i,items:{fenchel:["block","Doldenblütler (Fenchel/Anis/Kümmel) als Unverträglichkeit hinterlegt."]}},
+ {re:/nuss|nüsse|mandel|erdnuss/i,items:{hafer:["block","Enthält Mandeln – Nuss-Allergie hinterlegt."]}},
+ {re:/milch|laktose/i,items:{milchhonig:["block","Milch/Laktose als Unverträglichkeit hinterlegt."]}},
+ {re:/lippenbl|thymian|salbei|lavendel|melisse|oregano/i,items:{thymian:["block","Lippenblütler als Allergie hinterlegt."],salbei:["block","Lippenblütler als Allergie hinterlegt."],lavendel:["block","Lippenblütler als Allergie hinterlegt."],melisse:["block","Lippenblütler als Allergie hinterlegt."],salbei_schwitz:["block","Lippenblütler als Allergie hinterlegt."]}}
+];
+const ALLERGY_IGNORE=new Set(["pollen","gräser","graeser","hausstaub","staub","katzen","hunde","tiere","tierhaare","schimmel","milben","hausstaubmilben","insekten","wespen"]);
+function profileEff(p){
+  const flags={},items={},notes=[];
+  const add=(id,[t,x])=>{(items[id]=items[id]||[]).push([t,x]);};
+  const meds=String((p&&p.meds)||"").toLowerCase(),alg=String((p&&p.allergy)||"").toLowerCase();
+  MED_RULES.forEach(r=>{if(r.re.test(meds)){if(r.flag){flags[r.flag]=true;notes.push(r.flag);}Object.keys(r.items||{}).forEach(k=>add(k,r.items[k]));}});
+  ALLERGY_RULES.forEach(r=>{if(r.re.test(alg)){if(r.flag)flags[r.flag]=true;Object.keys(r.items||{}).forEach(k=>add(k,r.items[k]));}});
+  const tok=alg.split(/[,;\n\/]+/).map(s=>s.trim()).filter(s=>s.length>=4&&!ALLERGY_IGNORE.has(s));
+  return{flags,items,tok,notes};
+}
 function evalItem(it,p,sel){
   const am=ageM(p);const r={block:[],warn:[],notes:[],status:"ok"};
-  const flags=p.flags||{};
+  const eff=profileEff(p);
+  const flags=Object.assign({},p.flags||{},eff.flags);
   if(it.minM!=null&&it.minM>0){
     if(am==null)r.warn.push("Alter angeben – Eignung hängt vom Alter ab ("+ageFrom(it.minM)+").");
     else if(am<it.minM)r.block.push(it.minText||("Erst "+ageFrom(it.minM)+" geeignet."));
@@ -1235,6 +1428,8 @@ function evalItem(it,p,sel){
   if(it.maxM!=null&&am!=null&&am>it.maxM)r.block.push("Nur bis "+ageText(it.maxM)+" üblich.");
   for(const f in (it.avoid||{}))if(flags[f])r.block.push(it.avoid[f]||AVOID_TXT[f]);
   for(const f in (it.caution||{}))if(flags[f])r.warn.push(it.caution[f]);
+  ((it.id&&eff.items[it.id])||[]).forEach(([t,x])=>{const a=t==="block"?r.block:r.warn;if(!a.includes(x))a.push(x);});
+  if(eff.tok.length&&it.n){const nn=String(it.n).toLowerCase();const hit=eff.tok.find(k=>nn.includes(k));if(hit&&!r.block.length){r.block.push("Als Allergie/Unverträglichkeit hinterlegt: „"+hit+"“.");}}
   (it.blockSym||[]).forEach(([s,t])=>{if(sel.has(s)&&!r.block.includes(t))r.block.push(t);});
   (it.cautionSym||[]).forEach(([s,t])=>{if(sel.has(s)&&!r.warn.includes(t))r.warn.push(t);});
   if(it.minKg&&p.weight!=null&&Number(p.weight)<it.minKg)r.block.push("Unter "+it.minKg+" kg Körpergewicht nicht geeignet.");
@@ -1294,15 +1489,24 @@ function generalWarnings(p,sel){
    ============================================================ */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let S={diary:[],view:"guide",fpid:"all",fq:"",calY:new Date().getFullYear(),calM:new Date().getMonth(),calSel:null,lastBackup:null,persisted:null,editEntry:null,profiles:[],active:null,sel:new Set(),fs:1,ai:{key:"",model:"gemini-flash-latest"},disc:false,openCats:["allg"],userToggled:false,openConds:new Set(),filter:"",editing:null,draft:null};
+let S={diary:[],view:"guide",fpid:"all",fq:"",calY:new Date().getFullYear(),calM:new Date().getMonth(),calSel:null,lastBackup:null,persisted:null,editEntry:null,profiles:[],active:null,sel:new Set(),fs:1,ai:{key:"",model:"gemini-flash-latest"},disc:false,theme:"auto",use:{},bkSnooze:"",stSnooze:"",stock:{},cstock:[],temps:[],rems:[],vacc:[],vcSnooze:"",tpid:null,openCats:["allg"],userToggled:false,openConds:new Set(),filter:"",editing:null,draft:null};
 function save(){
-  try{localStorage.setItem(STORE_KEY,JSON.stringify({profiles:S.profiles,diary:S.diary,lastBackup:S.lastBackup,active:S.active,fs:S.fs,ai:S.ai,disc:S.disc,sel:[...S.sel]}));}catch(e){}
+  try{localStorage.setItem(STORE_KEY,JSON.stringify({profiles:S.profiles,diary:S.diary,lastBackup:S.lastBackup,active:S.active,fs:S.fs,ai:S.ai,disc:S.disc,sel:[...S.sel],theme:S.theme,use:S.use,bkSnooze:S.bkSnooze,stSnooze:S.stSnooze,stock:S.stock,cstock:S.cstock,temps:S.temps,rems:S.rems,vacc:S.vacc,vcSnooze:S.vcSnooze}));}catch(e){}
 }
 function load(){
   try{const d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");
-    if(d){S.profiles=d.profiles||[];S.diary=d.diary||[];S.lastBackup=d.lastBackup||null;S.active=d.active;S.fs=d.fs||1;S.ai=Object.assign(S.ai,d.ai||{});S.disc=!!d.disc;S.sel=new Set(d.sel||[]);}}catch(e){}
+    if(d){S.profiles=d.profiles||[];S.diary=d.diary||[];S.lastBackup=d.lastBackup||null;S.active=d.active;S.fs=d.fs||1;S.ai=Object.assign(S.ai,d.ai||{});S.disc=!!d.disc;S.sel=new Set(d.sel||[]);S.theme=d.theme||"auto";S.use=d.use||{};S.bkSnooze=d.bkSnooze||"";S.stSnooze=d.stSnooze||"";S.stock=d.stock||{};S.cstock=d.cstock||[];S.temps=d.temps||[];S.rems=d.rems||[];S.vacc=d.vacc||[];S.vcSnooze=d.vcSnooze||"";}}catch(e){}
 }
 const prof=()=>S.profiles.find(p=>p.id===S.active)||null;
+function applyTheme(){const r=document.documentElement;if(S.theme==="light"||S.theme==="dark")r.setAttribute("data-theme",S.theme);else r.removeAttribute("data-theme");}
+function renderBackupBar(){
+  const bar=$("bkBar");if(!bar)return;
+  const has=S.diary.length>0||S.temps.length>0||S.vacc.length>0||S.profiles.some(p=>(p.meds&&p.meds.trim())||(p.allergy&&p.allergy.trim()));
+  const days=S.lastBackup?Math.floor((Date.now()-new Date(S.lastBackup).getTime())/864e5):null;
+  const due=has&&(days==null||days>=7)&&S.bkSnooze!==todayS();
+  bar.hidden=!due;
+  if(due)bar.innerHTML=`<span>💾 ${days==null?"Noch kein Backup vorhanden.":"Letztes Backup vor "+days+" Tagen."} Deine Daten liegen nur auf diesem Gerät – bei gelöschten Browserdaten gehen sie verloren.</span><button class="btn" id="bkNow">Jetzt sichern</button><button class="btn sec" id="bkLater">Später</button>`;
+}
 function applyFont(){document.documentElement.style.fontSize=(16*S.fs)+"px";}
 
 /* ---------- Profil ---------- */
@@ -1318,12 +1522,17 @@ function renderProfile(){
   if(p.weight!=null&&p.weight!=="")t+=`<span class="tag">${esc(String(p.weight).replace(".",","))} kg</span>`;
   else if(p.type==="child")t+=`<span class="tag amber">Gewicht fehlt</span>`;
   profileFlags(p).forEach(f=>t+=`<span class="tag">${esc(FLAG_LABEL[f])}</span>`);
+  const eff=profileEff(p);
+  Object.keys(eff.flags).filter(f=>!(p.flags&&p.flags[f])).forEach(f=>t+=`<span class="tag">${esc(FLAG_LABEL[f])} (aus Angaben erkannt)</span>`);
+  if(p.meds&&p.meds.trim())t+=`<span class="tag">💊 Dauermedikation hinterlegt</span>`;
+  if(p.allergy&&p.allergy.trim())t+=`<span class="tag">⚠ Allergien hinterlegt</span>`;
   $("profInfo").innerHTML=t;
 }
 function openProfileDialog(id){
   const p=id?S.profiles.find(x=>x.id===id):null;
   S.editing=p?p.id:null;
-  S.draft=p?JSON.parse(JSON.stringify(p)):{id:"p"+Date.now(),name:"",type:"adult",age:null,unit:"y",weight:null,flags:{}};
+  S.draft=p?JSON.parse(JSON.stringify(p)):{id:"p"+Date.now(),name:"",type:"adult",age:null,unit:"y",weight:null,flags:{},meds:"",allergy:""};
+  $("dpMeds").value=S.draft.meds||"";$("dpAllergy").value=S.draft.allergy||"";
   $("dpTitle").textContent=p?"Profil bearbeiten":"Neues Profil";
   $("dpName").value=S.draft.name;$("dpAge").value=S.draft.age??"";$("dpUnit").value=S.draft.unit||"y";$("dpW").value=S.draft.weight??"";
   document.querySelectorAll("#dlgProfile [data-f]").forEach(cb=>cb.checked=!!S.draft.flags[cb.dataset.f]);
@@ -1347,6 +1556,7 @@ function saveProfile(){
   const a=$("dpAge").value;d.age=a===""?null:Math.max(0,Number(a));
   d.unit=d.type==="child"?$("dpUnit").value:"y";
   const w=$("dpW").value;d.weight=w===""?null:Number(w);
+  d.meds=$("dpMeds").value.trim();d.allergy=$("dpAllergy").value.trim();
   d.flags={};document.querySelectorAll("#dlgProfile [data-f]").forEach(cb=>{if(cb.checked&&!(d.type==="child"&&(cb.dataset.f==="schwanger"||cb.dataset.f==="stillen")))d.flags[cb.dataset.f]=true;});
   const i=S.profiles.findIndex(x=>x.id===d.id);
   if(i>=0)S.profiles[i]=d;else S.profiles.push(d);
@@ -1357,11 +1567,15 @@ function saveProfile(){
 function visibleSyms(){
   const p=prof();const isChild=p&&p.type==="child";const am=ageM(p);
   const q=S.filter.trim().toLowerCase();
-  return Object.values(SYM).filter(s=>(!s.kids||isChild)&&(!s.minAgeM||am==null||am>=s.minAgeM)&&(!q||s.label.toLowerCase().includes(q)));
+  const byCond=new Set();
+  if(q.length>=3)COND.forEach(c=>{if(c.n.toLowerCase().includes(q))c.s.forEach(([id])=>byCond.add(id));});
+  return Object.values(SYM).filter(s=>(!s.kids||isChild)&&(!s.minAgeM||am==null||am>=s.minAgeM)&&(!q||s.label.toLowerCase().includes(q)||byCond.has(s.id)));
 }
 function renderSymptoms(){
   const syms=visibleSyms();const q=S.filter.trim()!=="";
-  $("symList").innerHTML=CATS.map(c=>{
+  const favIds=q?[]:Object.keys(S.use||{}).filter(id=>SYM[id]&&S.use[id]>=2&&syms.some(s=>s.id===id)).sort((a,b)=>S.use[b]-S.use[a]).slice(0,8);
+  const favHtml=favIds.length?`<details class="cat" data-cat="fav" open><summary><span>⭐ Häufig genutzt</span><span class="cnt">${favIds.length}</span></summary><div class="chips">${favIds.map(id=>`<button type="button" class="chip${SYM[id].warn==="rot"?" rot":""}" data-sym="${id}" aria-pressed="${S.sel.has(id)}">${esc(SYM[id].label)}</button>`).join("")}</div></details>`:"";
+  $("symList").innerHTML=favHtml+CATS.map(c=>{
     const list=syms.filter(s=>s.cat===c.id);if(!list.length)return"";
     const n=list.filter(s=>S.sel.has(s.id)).length;
     const open=q||S.openCats.includes(c.id)||n>0;
@@ -1382,7 +1596,7 @@ function renderSelected(){
 /* ---------- Ergebnis ---------- */
 function itemHTML(id,it,r,isMed){
   const cls=r.status;
-  let h=`<div class="item ${cls}"><b>${isMed?(it.pf?"🌿 ":"💊 "):""}${esc(it.n)}${it.pf?' <span class="tag green">pflanzlich</span>':""}</b>`;
+  let h=`<div class="item ${cls}"><b>${isMed?(it.pf?"🌿 ":"💊 "):""}${esc(it.n)}${it.pf?' <span class="tag green">pflanzlich</span>':""}${isMed&&typeof stockBadge==="function"?stockBadge(it.id):""}</b>`;
   if(it.w)h+=`<div class="w">${esc(it.w)}</div>`;
   if(it.e&&!isMed)h+=`<div class="n">Wirkung: ${esc(it.e)}</div>`;
   r.block.forEach(t=>h+=`<div class="n stop">⛔ ${esc(t)}</div>`);
@@ -1411,7 +1625,7 @@ function condHTML(res,rank,p,sel){
   else if(c.rem.length===0)body+=`<h3>🌿 Hausmittel</h3><div class="muted">Keine Hausmittel – bitte ärztlich abklären.</div>`;
   // Medikamente
   const meds=c.med.map(id=>({id,it:MED[id]})).filter(x=>x.it&&relevant(x.it,sel)).map(x=>({...x,r:evalItem(x.it,p,sel)}));
-  const mOk=meds.filter(x=>x.r.status!=="blocked").sort((a,b)=>(b.it.pf?1:0)-(a.it.pf?1:0)),mNo=meds.filter(x=>x.r.status==="blocked");
+  const mOk=meds.filter(x=>x.r.status!=="blocked").sort((a,b)=>((b.it.pf?2:0)+(typeof inStock==="function"&&inStock(b.id)?1:0))-((a.it.pf?2:0)+(typeof inStock==="function"&&inStock(a.id)?1:0))),mNo=meds.filter(x=>x.r.status==="blocked");
   if(mOk.length){
     body+=`<h3>💊 Rezeptfreie Medikamente (pflanzliche zuerst, ohne Dosisangabe)</h3>`+mOk.map(x=>itemHTML(x.id,x.it,x.r,true)).join("");
     body+=`<div class="tab-note">Hausmittel und pflanzliche Mittel werden bevorzugt. Dosierung, Anwendungsdauer und Gegenanzeigen immer der Packungsbeilage entnehmen bzw. in der Apotheke erfragen.</div>`;
@@ -1421,6 +1635,8 @@ function condHTML(res,rank,p,sel){
   // Arzt
   body+=`<h3>🏥 Wann zum Arzt?</h3><ul style="margin:.2rem 0 .2rem 1.1rem;padding:0">${c.arzt.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
   if(c.tipp)body+=`<div class="banner info" style="margin-top:.6rem">${esc(c.tipp)}</div>`;
+  {const q=s=>"https://www.google.com/search?q="+encodeURIComponent(c.n.replace(/\s*\(.*$/,"")+" site:"+s);
+   body+=`<div class="tab-note" style="margin-top:.6rem">🔎 Mehr dazu: <a href="${q("gesundheitsinformation.de")}" target="_blank" rel="noopener">gesundheitsinformation.de</a>${(c.maxAgeM!=null&&c.maxAgeM<=216)||p.type==="child"?` · <a href="${q("kinderaerzte-im-netz.de")}" target="_blank" rel="noopener">Kinderärzte im Netz</a>`:""}</div>`;}
   body+=`<button type="button" class="btn sec" data-diary="${c.id}" style="margin-top:.7rem">📒 Ins Tagebuch eintragen</button>`;
   body+="</div>";
   return`<details class="cond${c.ernst===2?" ernst":""}" data-cond="${c.id}"${open?" open":""}><summary><div class="ctitle"><span>${c.ernst===2?"🚨 ":c.ernst===1?"🩺 ":""}${esc(c.n)}</span><span class="pct">${pct} %</span></div><div class="meter"><i style="width:${Math.max(4,pct)}%"></i></div><div class="tab-note" style="margin-top:.2rem">${label}${c.ernst===2?" · ärztlich abklären":c.ernst===1?" · ärztliche Abklärung empfohlen":""}</div></summary>${body}</details>`;
@@ -1431,7 +1647,8 @@ function renderResults(){
   if(!p){$("condList").innerHTML=`<p class="muted">Lege zuerst ein Profil an.</p>`;bn.innerHTML="";$("multiCard").hidden=true;updateBar([]);return;}
   if(p.type==="child"&&(p.age==null||p.age===""))b+=`<div class="banner gelb">Bitte das <b>Alter</b> des Kindes im Profil ergänzen – viele Mittel sind altersabhängig.</div>`;
   const gw=generalWarnings(p,sel);
-  if(gw.red.length)b+=`<div class="banner rot"><b>🚨 Warnzeichen</b><ul>${gw.red.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`;
+  if(gw.red.length)b+=`<div class="banner rot"><b>🚨 Warnzeichen</b><ul>${gw.red.map(t=>`<li>${esc(t)}</li>`).join("")}</ul><a class="btn sos" href="tel:112">📞 112 anrufen</a></div>`;
+  if(p.meds&&p.meds.trim())b+=`<div class="banner info">💊 Dauermedikation ist hinterlegt: gängige Wechselwirkungen werden berücksichtigt, die Prüfung ist aber nicht vollständig – bei Unsicherheit in der Apotheke nachfragen.</div>`;
   if(gw.yel.length)b+=`<div class="banner gelb"><b>Bitte ärztlich abklären</b><ul>${gw.yel.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`;
   bn.innerHTML=b;
   if(!sel.size){$("condList").innerHTML=`<p class="muted">Wähle links Symptome aus – die möglichen Ursachen und Hausmittel erscheinen hier und aktualisieren sich bei jedem weiteren Symptom.</p>`;$("multiCard").hidden=true;updateBar([]);return;}
@@ -1452,7 +1669,7 @@ function updateBar(res){
   const top=res[0];
   t.innerHTML=`<b>${n} Symptom${n>1?"e":""} · ${top?esc(top.c.n):"keine Treffer"}</b><span class="muted">${top?Math.round(top.score*100)+" % Übereinstimmung":""}</span>`;
 }
-function renderAll(){renderProfile();renderSymptoms();renderSelected();renderResults();if(typeof refreshViews==="function")refreshViews();}
+function renderAll(){renderBackupBar();if(typeof renderVaccBar==="function")renderVaccBar();if(typeof renderStockBar==="function")renderStockBar();renderProfile();renderSymptoms();renderSelected();renderResults();if(typeof refreshViews==="function")refreshViews();}
 
 /* ============================================================
    KI (Google Gemini)
@@ -1463,9 +1680,11 @@ function profileText(p){
   if(p.age!=null&&p.age!=="")t+=", Alter "+ageText(a);
   if(p.weight!=null&&p.weight!=="")t+=", "+p.weight+" kg";
   const f=profileFlags(p).map(x=>FLAG_LABEL[x]);if(f.length)t+=", Besonderheiten: "+f.join(", ");
+  if(p.meds&&p.meds.trim())t+=", Dauermedikation: "+p.meds.trim().slice(0,200);
+  if(p.allergy&&p.allergy.trim())t+=", Allergien/Unverträglichkeiten: "+p.allergy.trim().slice(0,200);
   return t;
 }
-const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt.";
+const AI_SYS="Du bist ein vorsichtiger Gesundheitsassistent für Hausmittel in Deutschland. Antworte auf Deutsch, kurz und verständlich. Stelle KEINE Diagnosen, sondern nenne mögliche Ursachen als Möglichkeiten. Nenne KEINE Medikamenten-Dosierungen (verweise auf Packungsbeilage/Apotheke, bei Kindern auf Gewicht). Beachte Alter, Gewicht und Besonderheiten des Profils (z. B. kein Honig unter 1 Jahr, kein ASS bei Kindern/Jugendlichen mit Infekt, Schwangerschaft). Weise bei Warnzeichen auf Notruf 112 oder ärztliche Hilfe hin. Du ersetzt keinen Arzt. Beachte Dauermedikation und Allergien aus dem Profil (mögliche Wechselwirkungen) und verweise bei Unsicherheit an die Apotheke.";
 const GBASE="https://generativelanguage.googleapis.com/v1beta/";
 const cleanKey=k=>String(k||"").replace(/[\s"'“”‘’„\u200B-\u200D\u2060\uFEFF\u00A0]/g,"").replace(/^key=/i,"").replace(/[^\x21-\x7E]/g,"");
 /* Schlüsselformate: neu "AQ." + Zeichen (Authentication Key, ca. 53 Zeichen), klassisch "AIza" + 35 Zeichen (39 gesamt) */
@@ -1638,7 +1857,7 @@ function setupPWA(){
    EVENTS / START
    ============================================================ */
 function init(){
-  load();applyFont();
+  load();applyFont();applyTheme();
   $("verTop").textContent="v"+APP_VERSION;
   $("foot").innerHTML=`Hausmittel-Ratgeber · Version ${APP_VERSION} · Alle Daten bleiben auf diesem Gerät (außer KI-Anfragen auf Knopfdruck). Allgemeine Informationen ohne Gewähr; keine Diagnose, keine Therapie- oder Dosierungsempfehlung.`;
   $("aiKey").value=S.ai.key||"";$("aiModel").value=S.ai.model||"gemini-flash-latest";
@@ -1660,8 +1879,8 @@ function init(){
   $("symSearch").oninput=e=>{S.filter=e.target.value;renderSymptoms();};
   $("symList").addEventListener("click",e=>{
     const b=e.target.closest("[data-sym]");if(!b)return;
-    const id=b.dataset.sym;if(S.sel.has(id))S.sel.delete(id);else S.sel.add(id);
-    b.setAttribute("aria-pressed",S.sel.has(id));S.userToggled=false;
+    const id=b.dataset.sym;if(S.sel.has(id))S.sel.delete(id);else{S.sel.add(id);S.use=S.use||{};S.use[id]=(S.use[id]||0)+1;}
+    document.querySelectorAll('#symList [data-sym="'+id+'"]').forEach(x=>x.setAttribute("aria-pressed",S.sel.has(id)));S.userToggled=false;
     save();renderSelected();renderResults();
   });
   $("symList").addEventListener("toggle",e=>{
@@ -1681,6 +1900,42 @@ function init(){
   $("fPlus").onclick=()=>{S.fs=Math.min(1.6,+(S.fs+.1).toFixed(2));applyFont();save();};
   $("btnUpd").onclick=()=>checkUpdate(true);
   $("btnInfo").onclick=()=>$("dlgDisc").showModal();
+  $("btnSOS").onclick=()=>$("dlgSOS").showModal();$("sosClose").onclick=()=>$("dlgSOS").close();
+  $("fpVacc").onchange=e=>{S.vpid=e.target.value;renderVacc();};
+  $("vAdd").onclick=addVacc;
+  $("vList").addEventListener("click",e=>{const b=e.target.closest("[data-vdel]");if(!b)return;if(!confirm("Impfeintrag löschen?"))return;S.vacc=S.vacc.filter(x=>x.id!==b.dataset.vdel);save();renderVacc();renderVaccBar();});
+  $("vcBar").addEventListener("click",e=>{if(e.target.id==="vcGo")switchView("vacc");else if(e.target.id==="vcLater"){S.vcSnooze=todayS();save();renderVaccBar();}});
+  $("btnRep").onclick=openReport;$("rpClose").onclick=()=>$("dlgRep").close();$("rpPrint").onclick=printReport;$("rpFile").onclick=fileReport;
+  $("btnSrc").onclick=()=>{$("dlgDisc").close();$("dlgSrc").showModal();};$("srcClose").onclick=()=>$("dlgSrc").close();
+  $("stSearch").oninput=renderStock;
+  $("stList").addEventListener("change",e=>{
+    const hv=e.target.getAttribute("data-have"),ex=e.target.getAttribute("data-exp");
+    if(hv){S.stock[hv]=S.stock[hv]||{have:false,exp:""};S.stock[hv].have=e.target.checked;}
+    else if(ex){S.stock[ex]=S.stock[ex]||{have:true,exp:""};S.stock[ex].exp=e.target.value;}
+    else return;
+    save();renderStock();renderStockBar();
+  });
+  $("stList").addEventListener("click",e=>{const b=e.target.closest("[data-cdel]");if(!b)return;if(!confirm("Eigenes Mittel entfernen?"))return;S.cstock=S.cstock.filter(c=>c.id!==b.dataset.cdel);delete S.stock[b.dataset.cdel];save();renderStock();renderStockBar();});
+  $("stAdd").onclick=()=>{
+    const n=$("stName").value.trim();if(!n)return;
+    const id="c_"+Date.now();S.cstock.push({id,name:n});S.stock[id]={have:true,exp:$("stNewExp").value||""};
+    $("stName").value="";$("stNewExp").value="";save();renderStock();renderStockBar();
+  };
+  $("stBar").addEventListener("click",e=>{if(e.target.id==="stGo")switchView("stock");else if(e.target.id==="stLater"){S.stSnooze=todayS();save();renderStockBar();}});
+  $("fpTemp").onchange=e=>{S.tpid=e.target.value;renderTemp();};
+  $("tAdd").onclick=addTemp;$("tRange").onchange=renderTemp;
+  $("tList").addEventListener("click",e=>{const b=e.target.closest("[data-tdel]");if(!b)return;if(!confirm("Messwert löschen?"))return;S.temps=S.temps.filter(x=>x.id!==b.dataset.tdel);save();renderTemp();});
+  $("rAdd").onclick=addRem;
+  document.querySelectorAll("[data-rin]").forEach(b=>b.onclick=()=>{const d=new Date(Date.now()+Number(b.dataset.rin)*36e5);$("rAt").value=ymd(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes());});
+  $("rList").addEventListener("click",e=>{const b=e.target.closest("[data-rdel]");if(!b)return;S.rems=S.rems.filter(r=>r.id!==b.dataset.rdel);save();renderRemList();checkReminders();});
+  $("remBar").addEventListener("click",e=>{const d=e.target.closest("[data-rdone]"),s=e.target.closest("[data-rsnz]");if(d)remDone(d.dataset.rdone);else if(s)remSnooze(s.dataset.rsnz);});
+  $("rNotif").onclick=()=>{try{Notification.requestPermission().then(()=>renderRemList());}catch(e){alert("Dieses Gerät/Browser unterstützt keine Benachrichtigungen.");}};
+  setInterval(checkReminders,20000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkReminders();});checkReminders();
+  $("themeSel").value=S.theme;$("themeSel").onchange=e=>{S.theme=e.target.value;applyTheme();save();};
+  $("bkBar").addEventListener("click",e=>{
+    if(e.target.id==="bkNow"){exportData();renderBackupBar();}
+    else if(e.target.id==="bkLater"){S.bkSnooze=todayS();save();renderBackupBar();}
+  });
   $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
   $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
   $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();{const kf=keyFormat(S.ai.key);$("aiStat").textContent=(kf.ok?"Gespeichert. ":"Gespeichert, aber: ")+keyInfo()+".";}};
@@ -1908,17 +2163,17 @@ function renderSeason(){
 function switchView(v){
   S.view=v;
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===v));
-  $("viewGuide").hidden=v!=="guide";$("viewDiary").hidden=v!=="diary";$("viewCal").hidden=v!=="cal";$("viewSeason").hidden=v!=="season";
+  $("viewGuide").hidden=v!=="guide";$("viewDiary").hidden=v!=="diary";$("viewCal").hidden=v!=="cal";$("viewSeason").hidden=v!=="season";$("viewStock").hidden=v!=="stock";$("viewTemp").hidden=v!=="temp";$("viewVacc").hidden=v!=="vacc";
   $("bar").style.display=v==="guide"?"":"none";
   refreshViews();window.scrollTo(0,0);
 }
 function refreshViews(){
   fillFilters();
-  if(S.view==="diary")renderDiary();else if(S.view==="cal")renderCal();else if(S.view==="season")renderSeason();
+  if(S.view==="diary")renderDiary();else if(S.view==="cal")renderCal();else if(S.view==="season")renderSeason();else if(S.view==="stock")renderStock();else if(S.view==="temp")renderTemp();else if(S.view==="vacc")renderVacc();
 }
 /* ---- Backup ---- */
 function exportData(){
-  const d={app:"hausmittel-ratgeber",version:APP_VERSION,exported:new Date().toISOString(),profiles:S.profiles,diary:S.diary};
+  const d={app:"hausmittel-ratgeber",version:APP_VERSION,exported:new Date().toISOString(),profiles:S.profiles,diary:S.diary,temps:S.temps,rems:S.rems,stock:S.stock,cstock:S.cstock,vacc:S.vacc};
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:"application/json"}));
   a.download="hausmittel-backup-"+todayS()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
   S.lastBackup=new Date().toISOString();save();renderDiary();
@@ -1932,6 +2187,11 @@ function importData(file){
       if(!confirm("Backup zusammenführen?\n"+d.profiles.length+" Profile und "+d.diary.length+" Einträge werden hinzugefügt (gleiche IDs werden überschrieben)."))return;
       d.profiles.forEach(p=>{if(!p||!p.id)return;const i=S.profiles.findIndex(x=>x.id===p.id);if(i>=0)S.profiles[i]=p;else S.profiles.push(p);});
       d.diary.forEach(e=>{if(!e||!e.id||!e.start||!e.title)return;const i=S.diary.findIndex(x=>x.id===e.id);if(i>=0)S.diary[i]=e;else S.diary.push(e);});
+      (d.temps||[]).forEach(t=>{if(!t||!t.id||!t.pid||!t.at)return;const i=S.temps.findIndex(x=>x.id===t.id);if(i>=0)S.temps[i]=t;else S.temps.push(t);});
+      (d.rems||[]).forEach(t=>{if(!t||!t.id||!t.at)return;const i=S.rems.findIndex(x=>x.id===t.id);if(i>=0)S.rems[i]=t;else S.rems.push(t);});
+      (d.vacc||[]).forEach(t=>{if(!t||!t.id||!t.pid||!t.date)return;const i=S.vacc.findIndex(x=>x.id===t.id);if(i>=0)S.vacc[i]=t;else S.vacc.push(t);});
+      (d.cstock||[]).forEach(c=>{if(c&&c.id&&c.name&&!S.cstock.some(x=>x.id===c.id))S.cstock.push(c);});
+      if(d.stock&&typeof d.stock==="object")Object.keys(d.stock).forEach(k=>{S.stock[k]=d.stock[k];});
       if(!S.active&&S.profiles.length)S.active=S.profiles[0].id;
       save();renderAll();alert("Backup eingespielt.");
     }catch(e){alert("Import fehlgeschlagen: "+(e.message||e));}
@@ -1943,6 +2203,298 @@ function wipeAll(){
   if(!confirm("Das kann nicht rückgängig gemacht werden. Fortfahren?"))return;
   try{localStorage.removeItem(STORE_KEY);}catch(e){}
   location.replace(location.pathname+"?v="+Date.now());
+}
+
+/* ============================================================
+   HAUSAPOTHEKE
+   ============================================================ */
+const SET_REISE={n:"Reiseapotheke",ids:["ors","loperamid","dimenhydrinat","antihist","stichgel","wunddesinfektion","paracetamol","ibuprofen","dexpanthenol","simeticon","traenen","insektenschutz","sonnenschutz"]};
+const SET_SPORT={n:"Sport & Verletzungen",ids:["schmerzgel","beinwell","ibuprofen","paracetamol","wunddesinfektion","dexpanthenol","magnesium"]};
+const shortName=n=>String(n).replace(/\s*\(.*$/,"");
+function expDate(exp){
+  if(!exp)return null;
+  let m=/^(\d{4})-(\d{2})$/.exec(exp);if(m)return new Date(+m[1],+m[2],0,23,59,59);
+  m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(exp);if(m)return new Date(+m[1],+m[2]-1,+m[3],23,59,59);
+  return null;
+}
+function expState(exp){
+  const d=expDate(exp);if(!d)return"none";
+  const left=(d.getTime()-Date.now())/864e5;
+  return left<0?"expired":left<=30?"soon":"ok";
+}
+function stockName(k){
+  if(k.indexOf("c_")===0){const c=S.cstock.find(x=>x.id===k);return c?c.name:k;}
+  return MED[k]?MED[k].n:k;
+}
+const inStock=k=>!!(S.stock[k]&&S.stock[k].have);
+function stockBadge(k){
+  if(!k||!inStock(k))return"";
+  const st=expState(S.stock[k].exp);
+  if(st==="expired")return' <span class="tag amber">⚠ vorrätig, aber abgelaufen</span>';
+  if(st==="soon")return' <span class="tag amber">🧰 vorrätig (läuft bald ab)</span>';
+  return' <span class="tag green">🧰 vorrätig</span>';
+}
+function stockIssues(){
+  const out=[];
+  Object.keys(S.stock).forEach(k=>{const s=S.stock[k];if(!s||!s.have)return;const st=expState(s.exp);if(st==="expired"||st==="soon")out.push({k,st,exp:s.exp});});
+  return out;
+}
+function renderStockBar(){
+  const bar=$("stBar");if(!bar)return;
+  const is=stockIssues();const show=is.length&&S.stSnooze!==todayS();
+  bar.hidden=!show;
+  if(show){
+    const ex=is.filter(x=>x.st==="expired").map(x=>shortName(stockName(x.k))),so=is.filter(x=>x.st==="soon").map(x=>shortName(stockName(x.k)));
+    bar.innerHTML=`<span>🧰 Hausapotheke: ${ex.length?"<b>abgelaufen:</b> "+esc(ex.join(", "))+". ":""}${so.length?"<b>läuft in 30 Tagen ab:</b> "+esc(so.join(", "))+".":""} Abgelaufene Mittel bitte in der Apotheke entsorgen.</span><button class="btn sec" id="stGo">Ansehen</button><button class="btn sec" id="stLater">Später</button>`;
+  }
+}
+function renderStock(){
+  if(!$("stList"))return;
+  const q=($("stSearch").value||"").trim().toLowerCase();
+  const row=(k,name,custom)=>{
+    const s=S.stock[k]||{};const have=custom||!!s.have;const st=have?expState(s.exp):"none";
+    const badge=st==="expired"?'<span class="tag amber">abgelaufen</span>':st==="soon"?'<span class="tag amber">läuft bald ab</span>':(have&&s.exp?'<span class="tag green">ok</span>':"");
+    return`<div class="strow"><label class="chk"><input type="checkbox" data-have="${esc(k)}"${have?" checked":""}${custom?" disabled":""}><span>${esc(name)}</span></label><input type="month" data-exp="${esc(k)}" value="${esc(s.exp||"")}"${have?"":" disabled"} aria-label="Ablaufdatum ${esc(shortName(name))}">${badge}${custom?`<button class="btn danger" data-cdel="${esc(k)}" style="padding:.25rem .6rem">✕</button>`:""}</div>`;
+  };
+  const cust=S.cstock.filter(c=>!q||c.name.toLowerCase().includes(q)).map(c=>row(c.id,c.name,true)).join("");
+  const keys=Object.keys(MED).filter(k=>!q||MED[k].n.toLowerCase().includes(q)).sort((a,b)=>{const ha=inStock(a)?0:1,hb=inStock(b)?0:1;return ha-hb||MED[a].n.localeCompare(MED[b].n,"de");});
+  $("stList").innerHTML=(cust?'<div class="tab-note">Eigene Mittel</div>'+cust:"")+(keys.length?keys.map(k=>row(k,MED[k].n,false)).join(""):'<p class="muted">Nichts gefunden.</p>');
+  const miss=set=>{const m=set.ids.filter(k=>MED[k]&&!inStock(k));return`<div class="muted" style="margin:.25rem 0"><b>${esc(set.n)}:</b> ${m.length?"fehlt noch – "+esc(m.map(k=>shortName(MED[k].n)).join(", ")):"✓ vollständig"}</div>`;};
+  $("stSets").innerHTML=miss(SET_REISE)+miss(SET_SPORT);
+}
+
+/* ============================================================
+   FIEBERKURVE
+   ============================================================ */
+const nowLocal=()=>{const d=new Date();return ymd(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes());};
+const tms=s=>new Date(s).getTime();
+const fmtDT=s=>{const d=new Date(s);return pad2(d.getDate())+"."+pad2(d.getMonth()+1)+". "+pad2(d.getHours())+":"+pad2(d.getMinutes());};
+const fmtT=v=>Number(v).toFixed(1).replace(".",",");
+function tempsOf(pid){return S.temps.filter(x=>x.pid===pid).sort((a,b)=>tms(a.at)-tms(b.at));}
+function consecFeverDays(list){
+  const days=new Set(list.filter(x=>x.v>=38).map(x=>x.at.slice(0,10)));
+  if(!days.size)return 0;
+  const last=[...days].sort().pop();let n=0;const d=pdate(last);
+  while(days.has(ymd(d))){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+function tempChart(list,range){
+  if(!list.length)return'<p class="muted">Noch keine Messwerte – trage oben den ersten ein.</p>';
+  const W=360,H=230,L=34,R=10,T=10,B=34,y0=35.5,y1=41.5;
+  const allT=list.map(x=>tms(x.at));const endT=Math.max(Math.max(...allT),Date.now());
+  let startT=range==="all"?Math.min(...allT)-36e5:endT-Number(range)*36e5;
+  if(endT-startT<6*36e5)startT=endT-6*36e5;
+  const vis=list.filter(x=>tms(x.at)>=startT&&tms(x.at)<=endT+1000);
+  if(!vis.length)return'<p class="muted">Im gewählten Zeitraum keine Messwerte.</p>';
+  const X=t=>L+(t-startT)/(endT-startT)*(W-L-R);
+  const Y=v=>T+(1-(Math.min(y1,Math.max(y0,v))-y0)/(y1-y0))*(H-T-B);
+  const band=(a,b,fill,op)=>`<rect x="${L}" y="${Y(b)}" width="${W-L-R}" height="${Y(a)-Y(b)}" fill="${fill}" opacity="${op}"/>`;
+  let s=`<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fieberkurve"><title>Fieberkurve</title>`;
+  s+=band(y0,37.5,"var(--accent)",.12)+band(37.5,38,"var(--amber)",.14)+band(38,39.5,"var(--amber)",.26)+band(39.5,y1,"var(--red)",.2);
+  [36,37,38,39,40,41].forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-4}" y="${Y(v)+3}" font-size="10" text-anchor="end" fill="var(--muted)">${v}</text>`;});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${Y(38)}" y2="${Y(38)}" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="5 3"/><line x1="${L}" x2="${W-R}" y1="${Y(39.5)}" y2="${Y(39.5)}" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+  s+=`<text x="${W-R-2}" y="${Y(38)-3}" font-size="9" text-anchor="end" fill="var(--amber)">Fieber 38,0</text><text x="${W-R-2}" y="${Y(39.5)-3}" font-size="9" text-anchor="end" fill="var(--red)">hoch 39,5</text>`;
+  for(let i=0;i<=4;i++){const t=startT+(endT-startT)*i/4;const d=new Date(t);s+=`<text x="${X(t)}" y="${H-B+13}" font-size="9" text-anchor="${i===0?"start":i===4?"end":"middle"}" fill="var(--muted)">${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.</text><text x="${X(t)}" y="${H-B+24}" font-size="9" text-anchor="${i===0?"start":i===4?"end":"middle"}" fill="var(--muted)">${pad2(d.getHours())}:${pad2(d.getMinutes())}</text>`;}
+  s+=`<polyline fill="none" stroke="var(--fg)" stroke-width="1.6" points="${vis.map(x=>X(tms(x.at)).toFixed(1)+","+Y(x.v).toFixed(1)).join(" ")}"/>`;
+  vis.forEach(x=>{const col=x.v>=39.5?"var(--red)":x.v>=38?"var(--amber)":"var(--accent)";s+=`<circle cx="${X(tms(x.at)).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="4.2" fill="${col}" stroke="var(--card)" stroke-width="1.2"><title>${fmtT(x.v)} °C · ${fmtDT(x.at)}${x.site?" · "+esc(x.site):""}${x.note?" · "+esc(x.note):""}</title></circle>`;});
+  return s+"</svg>";
+}
+function renderTemp(){
+  if(!$("tChart"))return;
+  const sel=$("fpTemp");
+  if(!S.profiles.length){sel.innerHTML="";$("tChart").innerHTML='<p class="muted">Bitte zuerst im Ratgeber ein Profil anlegen.</p>';$("tList").innerHTML="";$("tStat").innerHTML="";$("tAlert").innerHTML="";renderRemList();return;}
+  if(!S.profiles.some(p=>p.id===S.tpid))S.tpid=S.active&&S.profiles.some(p=>p.id===S.active)?S.active:S.profiles[0].id;
+  sel.innerHTML=S.profiles.map(p=>`<option value="${esc(p.id)}">${p.type==="child"?"🧒":"🧑"} ${esc(p.name)}</option>`).join("");sel.value=S.tpid;
+  if(!$("tAt").value)$("tAt").value=nowLocal();
+  if(!$("rAt").value)$("rAt").value=nowLocal();
+  const p=S.profiles.find(x=>x.id===S.tpid);const list=tempsOf(S.tpid);const am=ageM(p);
+  $("tChart").innerHTML=tempChart(list,$("tRange").value);
+  let al="";
+  if(list.length){
+    const lastV=list[list.length-1];const recent=list.filter(x=>tms(x.at)>=Date.now()-864e5);
+    if(am!=null&&am<3&&recent.some(x=>x.v>=38))al+=`<div class="banner rot">Säugling unter 3 Monaten mit Fieber (ab 38,0 °C) → sofort Kinderarzt/Notaufnahme. <a class="btn sos" href="tel:112" style="margin-top:.3rem">📞 112</a></div>`;
+    else if(am!=null&&am<6&&recent.some(x=>x.v>=38))al+=`<div class="banner gelb">Fieber bei Säuglingen unter 6 Monaten → heute ärztlich abklären.</div>`;
+    if(lastV.v>=41)al+=`<div class="banner rot">Sehr hohes Fieber (≥ 41 °C) → sofort ärztliche Hilfe / 112. <a class="btn sos" href="tel:112" style="margin-top:.3rem">📞 112</a></div>`;
+    else if(lastV.v>=(p.type==="child"?39:39.5))al+=`<div class="banner gelb">Hohes Fieber (${p.type==="child"?"Kinder ab 39,0 °C":"ab 39,5 °C"}) – ärztlich abklären lassen, besonders bei Kindern, Älteren und Vorerkrankten.</div>`;
+    const cd=consecFeverDays(list);
+    if(cd>=3)al+=`<div class="banner gelb">Fieber an ${cd} aufeinanderfolgenden Tagen → bitte ärztlich abklären.</div>`;
+  }
+  $("tAlert").innerHTML=al;
+  const mx=list.reduce((a,x)=>!a||x.v>a.v?x:a,null);
+  $("tStat").innerHTML=list.length?`<span class="tag">Messungen: ${list.length}</span><span class="tag ${mx.v>=38?"amber":"green"}">Höchstwert: ${fmtT(mx.v)} °C (${esc(fmtDT(mx.at))})</span><span class="tag">Zuletzt: ${fmtT(list[list.length-1].v)} °C</span>`:"";
+  $("tList").innerHTML=list.slice().reverse().slice(0,40).map(x=>`<div class="trow"><b>${fmtT(x.v)}°</b><span class="grow">${esc(fmtDT(x.at))}${x.site?" · "+esc(x.site):""}${x.note?" · "+esc(x.note):""}</span><button class="btn danger" data-tdel="${esc(x.id)}" aria-label="Messwert löschen" style="padding:.2rem .55rem">✕</button></div>`).join("");
+  renderRemList();
+}
+function addTemp(){
+  const v=parseFloat(String($("tVal").value).replace(",","."));
+  if(!(v>=34&&v<=43)){alert("Bitte eine Temperatur zwischen 34 und 43 °C eingeben.");return;}
+  const at=$("tAt").value||nowLocal();
+  S.temps.push({id:"t"+Date.now()+Math.random().toString(36).slice(2,5),pid:S.tpid,at:at,v:Math.round(v*10)/10,site:$("tSite").value,note:$("tNote").value.trim()});
+  $("tVal").value="";$("tNote").value="";$("tAt").value=nowLocal();save();renderTemp();
+}
+
+/* ============================================================
+   ERINNERUNGEN (nur bei geöffneter App)
+   ============================================================ */
+function remLeft(r){const m=Math.round((tms(r.at)-Date.now())/6e4);if(m<=0)return"fällig";if(m<60)return"in "+m+" Min.";const h=Math.floor(m/60);return"in "+h+" Std. "+(m%60)+" Min.";}
+function renderRemList(){
+  const el=$("rList");if(!el)return;
+  const list=S.rems.filter(r=>!r.done).sort((a,b)=>tms(a.at)-tms(b.at));
+  el.innerHTML=list.length?list.map(r=>`<div class="trow"><b style="min-width:5.5rem">${esc(fmtDT(r.at))}</b><span class="grow">${esc(r.txt)}${r.pid?" · "+esc((S.profiles.find(p=>p.id===r.pid)||{}).name||""):""}${r.rep?" · alle "+(r.rep===24?"24":r.rep)+" Std.":""} <span class="muted">(${remLeft(r)})</span></span><button class="btn danger" data-rdel="${esc(r.id)}" aria-label="Erinnerung löschen" style="padding:.2rem .55rem">✕</button></div>`).join(""):'<p class="muted">Keine offenen Erinnerungen.</p>';
+  const nb=$("rNotif");if(nb){nb.hidden=!("Notification" in window)||Notification.permission==="granted";}
+}
+function addRem(){
+  const txt=$("rTxt").value.trim();if(!txt){alert("Bitte einen Text für die Erinnerung eingeben.");return;}
+  const at=$("rAt").value;if(!at){alert("Bitte einen Zeitpunkt wählen.");return;}
+  S.rems.push({id:"r"+Date.now()+Math.random().toString(36).slice(2,5),pid:S.tpid||null,txt:txt,at:at,rep:Number($("rRep").value)||0,done:false,notified:false});
+  $("rTxt").value="";save();renderRemList();checkReminders();
+}
+function notify(txt){
+  try{if("Notification" in window&&Notification.permission==="granted"){
+    const t="⏰ "+txt;
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(reg=>{if(reg&&reg.showNotification)reg.showNotification("Hausmittel-Ratgeber",{body:t,tag:"hm-rem"});else new Notification("Hausmittel-Ratgeber",{body:t});}).catch(()=>{try{new Notification("Hausmittel-Ratgeber",{body:t});}catch(e){}});
+    else new Notification("Hausmittel-Ratgeber",{body:t});}}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+}
+function checkReminders(){
+  const bar=$("remBar");if(!bar)return;
+  const now=Date.now();
+  const due=S.rems.filter(r=>!r.done&&tms(r.at)<=now);
+  let ch=false;due.forEach(r=>{if(!r.notified){r.notified=true;ch=true;notify(r.txt);}});if(ch)save();
+  if(!due.length){bar.hidden=true;bar.innerHTML="";if(S.view==="temp")renderRemList();return;}
+  const r=due[0];const pn=(S.profiles.find(p=>p.id===r.pid)||{}).name;
+  bar.hidden=false;
+  bar.innerHTML=`<b>⏰ ${esc(r.txt)}</b>${pn?" · "+esc(pn):""}${due.length>1?` <span class="muted">(+${due.length-1} weitere)</span>`:""}<div class="row"><button class="btn" data-rdone="${esc(r.id)}">Erledigt</button><button class="btn sec" data-rsnz="${esc(r.id)}">+15 Min</button></div>`;
+  if(S.view==="temp")renderRemList();
+}
+function remDone(id){
+  const r=S.rems.find(x=>x.id===id);if(!r)return;
+  if(r.rep){const d=new Date(Date.now()+r.rep*36e5);r.at=ymd(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes());r.notified=false;}
+  else r.done=true;
+  save();checkReminders();renderRemList();
+}
+function remSnooze(id){
+  const r=S.rems.find(x=>x.id===id);if(!r)return;
+  const d=new Date(Date.now()+15*6e4);r.at=ymd(d)+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes());r.notified=false;
+  save();checkReminders();renderRemList();
+}
+
+/* ============================================================
+   IMPFPASS (STIKO-Impfkalender 2026, vereinfacht)
+   ============================================================ */
+const VACC=[
+ {k:"rsv_ab",n:"RSV-Prophylaxe (Antikörper) für Säuglinge",ok:am=>am<=12,rec:"Einmalig für Neugeborene/Säuglinge vor oder in der ersten RSV-Saison (Herbst–Winter).",doses:1},
+ {k:"rota",n:"Rotaviren (Schluckimpfung)",ok:am=>am<=8,rec:"Ab 6 Wochen, 2–3 Dosen im Abstand von mindestens 4 Wochen (Serie spätestens bis ca. 6–8 Monate abschließen).",doses:2},
+ {k:"sechs",n:"6-fach-Impfung (Tetanus, Diphtherie, Keuchhusten, Hib, Polio, Hepatitis B)",ok:am=>am<=216,rec:"Säuglinge: im Alter von 2, 4 und 11 Monaten (Frühgeborene zusätzlich mit 3 Monaten). Fehlende Impfungen bis 18 Jahre nachholen.",doses:3},
+ {k:"pneumo_k",n:"Pneumokokken (Kinder)",ok:am=>am<=24,rec:"Säuglinge: 2, 4 und 11 Monate (Frühgeborene 2, 3, 4, 11).",doses:3},
+ {k:"menb",n:"Meningokokken B",ok:am=>am<=60,rec:"Säuglinge und Kleinkinder unter 5 Jahren: Beginn ab 2 Monaten, insgesamt 3 Dosen.",doses:3},
+ {k:"mmrv",n:"Masern, Mumps, Röteln, Windpocken (MMR/V)",ok:am=>am>=9&&am<216,rec:"1. Impfung mit 11 Monaten (bei Kita-Besuch ab 9 Monaten), 2. Impfung mit 15 Monaten.",doses:2},
+ {k:"tdap_k",n:"Tetanus/Diphtherie/Keuchhusten + Polio (Auffrischung)",ok:am=>am>=60&&am<=216,rec:"Auffrischung mit 5–6 Jahren und noch einmal mit 9–16 Jahren.",doses:2},
+ {k:"hpv",n:"HPV (Gebärmutterhalskrebs u. a.)",ok:am=>am>=108&&am<=204,rec:"Alle Kinder von 9–14 Jahren (2 Dosen im Abstand von 5 Monaten); Nachholen bis 17 Jahre (3 Dosen bei Start ab 15).",doses:2},
+ {k:"acwy",n:"Meningokokken ACWY",ok:am=>am>=144&&am<=215,rec:"1 Dosis mit 12–14 Jahren (Nachholen bis 17).",doses:1},
+ {k:"tdap",n:"Tetanus/Diphtherie (+ Keuchhusten einmalig)",ok:am=>am>=216,rec:"Auffrischung alle 10 Jahre; Keuchhusten (Pertussis) einmalig als Kombinationsimpfung bei der nächsten Auffrischung.",int:120},
+ {k:"mmr_e",n:"Masern (Erwachsene, nach 1970 geboren)",ok:am=>am>=216&&am<=672,rec:"Einmalig, wenn keine oder nur eine Impfung bzw. unklarer Impfstatus (Kombination MMR).",doses:1},
+ {k:"pert_s",n:"Keuchhusten in der Schwangerschaft",ok:(am,p)=>!!(p.flags&&p.flags.schwanger),rec:"In jeder Schwangerschaft zu Beginn des 3. Schwangerschaftsdrittels (ggf. früher bei Frühgeburtsrisiko).",doses:1},
+ {k:"influenza",n:"Grippe (Influenza)",ok:(am,p)=>am>=720||!!(p.flags&&p.flags.schwanger),rec:"Jährlich im Herbst ab 60 Jahren; Schwangere ab dem 2. Drittel; auch bei chronischen Erkrankungen (Arzt fragen).",int:12},
+ {k:"covid",n:"COVID-19",ok:am=>am>=720,rec:"Ab 60 Jahren jährliche Auffrischung (bei Risikofaktoren auch früher – Arzt fragen).",int:12},
+ {k:"pneumo_e",n:"Pneumokokken (Erwachsene)",ok:am=>am>=720,rec:"Einmalige Standardimpfung ab 60 Jahren.",doses:1},
+ {k:"zoster",n:"Gürtelrose (Herpes zoster)",ok:am=>am>=720,rec:"Ab 60 Jahren 2 Dosen im Abstand von 2–6 Monaten (bei erhöhter Gefährdung schon ab 18 Jahren).",doses:2},
+ {k:"rsv_e",n:"RSV (Erwachsene)",ok:am=>am>=900,rec:"Einmalig ab 75 Jahren (ab 60 bei schwerer Grunderkrankung oder Pflegeheim), im Spätsommer/Herbst.",doses:1},
+ {k:"fsme",n:"FSME (Zeckenimpfung)",ok:am=>am>=12,rec:"Bei Aufenthalt in Risikogebieten bzw. Zeckenkontakt; Auffrischung nach Impfschema (Arzt fragen).",doses:3},
+ {k:"sonst",n:"Sonstige Impfung (Freitext in Notiz)",ok:()=>true,rec:"Reise- und weitere Impfungen eintragen.",free:true}
+];
+const vaccOf=(pid)=>S.vacc.filter(x=>x.pid===pid);
+function addMonthsStr(ds,m){const d=pdate(ds);d.setMonth(d.getMonth()+m);return ymd(d);}
+function vaccStatus(def,list){
+  const es=list.filter(x=>x.key===def.k).sort((a,b)=>a.date<b.date?-1:1);
+  if(def.free)return{tag:"",cls:"",n:es.length};
+  if(!es.length)return{tag:"nicht dokumentiert – Impfpass prüfen",cls:"",n:0};
+  const last=es[es.length-1].date;
+  if(def.int){
+    const nx=addMonthsStr(last,def.int),days=(pdate(nx)-new Date())/864e5;
+    return days<0?{tag:"Auffrischung fällig seit "+fmtD(nx),cls:"amber",n:es.length,due:nx,overdue:true}:days<=60?{tag:"bald fällig: "+fmtD(nx),cls:"amber",n:es.length,due:nx}:{tag:"aktuell bis "+fmtD(nx),cls:"green",n:es.length,due:nx};
+  }
+  if(def.doses)return es.length>=def.doses?{tag:"✓ vollständig dokumentiert ("+es.length+")",cls:"green",n:es.length}:{tag:es.length+" von "+def.doses+" Dosen dokumentiert",cls:"amber",n:es.length};
+  return{tag:es.length+" dokumentiert",cls:"green",n:es.length};
+}
+function vaccApplicable(p){const am=ageM(p);return VACC.filter(v=>am==null?(v.k!=="sonst"?p.type!=="child"?v.ok(216,p):v.ok(24,p):true):v.ok(am,p));}
+function vaccIssues(){
+  const out=[];
+  S.profiles.forEach(p=>{const list=vaccOf(p.id);vaccApplicable(p).forEach(def=>{if(!def.int)return;const st=vaccStatus(def,list);if(st.overdue)out.push({p:p.name,n:def.n,due:st.due});});});
+  return out;
+}
+function renderVaccBar(){
+  const bar=$("vcBar");if(!bar)return;
+  const is=vaccIssues();const show=is.length&&S.vcSnooze!==todayS();bar.hidden=!show;
+  if(show)bar.innerHTML=`<span>💉 Impf-Erinnerung: ${esc(is.slice(0,3).map(x=>x.p+": "+shortName(x.n)).join("; "))}${is.length>3?" …":""} – Auffrischung ist fällig.</span><button class="btn sec" id="vcGo">Ansehen</button><button class="btn sec" id="vcLater">Später</button>`;
+}
+function renderVacc(){
+  if(!$("vList"))return;
+  const sel=$("fpVacc");
+  if(!S.profiles.length){sel.innerHTML="";$("vList").innerHTML='<p class="muted">Bitte zuerst im Ratgeber ein Profil anlegen.</p>';$("vKey").innerHTML="";return;}
+  if(!S.profiles.some(p=>p.id===S.vpid))S.vpid=S.active&&S.profiles.some(p=>p.id===S.active)?S.active:S.profiles[0].id;
+  sel.innerHTML=S.profiles.map(p=>`<option value="${esc(p.id)}">${p.type==="child"?"🧒":"🧑"} ${esc(p.name)}</option>`).join("");sel.value=S.vpid;
+  const p=S.profiles.find(x=>x.id===S.vpid);const list=vaccOf(p.id);const apl=vaccApplicable(p);
+  if(p.age==null||p.age==="")$("vList").innerHTML='<div class="banner gelb">Bitte im Profil das Alter eintragen – die Empfehlungen hängen vom Alter ab.</div>';else $("vList").innerHTML="";
+  $("vList").innerHTML+=apl.filter(v=>!v.free).map(def=>{
+    const st=vaccStatus(def,list);const es=list.filter(x=>x.key===def.k).sort((a,b)=>a.date<b.date?-1:1);
+    return`<div class="vrow"><div class="vh"><b>${esc(def.n)}</b>${st.tag?`<span class="tag ${st.cls}">${esc(st.tag)}</span>`:""}</div><div class="muted">${esc(def.rec)}</div>${es.map(x=>`<div class="trow"><b style="min-width:5.8rem">${esc(fmtD(x.date))}</b><span class="grow">${esc(x.note||"")}</span><button class="btn danger" data-vdel="${esc(x.id)}" aria-label="Eintrag löschen" style="padding:.2rem .55rem">✕</button></div>`).join("")}</div>`;
+  }).join("");
+  const free=list.filter(x=>x.key==="sonst").sort((a,b)=>a.date<b.date?-1:1);
+  if(free.length)$("vList").innerHTML+=`<div class="vrow"><div class="vh"><b>Sonstige Impfungen</b></div>${free.map(x=>`<div class="trow"><b style="min-width:5.8rem">${esc(fmtD(x.date))}</b><span class="grow">${esc(x.note||"")}</span><button class="btn danger" data-vdel="${esc(x.id)}" aria-label="Eintrag löschen" style="padding:.2rem .55rem">✕</button></div>`).join("")}</div>`;
+  $("vKey").innerHTML=apl.map(d=>`<option value="${d.k}">${esc(d.n)}</option>`).join("");
+  if(!$("vDate").value)$("vDate").value=todayS();
+}
+function addVacc(){
+  const key=$("vKey").value,date=$("vDate").value;
+  if(!key||!date){alert("Bitte Impfung und Datum angeben.");return;}
+  if(date>todayS()&&!confirm("Das Datum liegt in der Zukunft. Trotzdem speichern?"))return;
+  S.vacc.push({id:"v"+Date.now()+Math.random().toString(36).slice(2,5),pid:S.vpid,key,date,note:$("vNote").value.trim()});
+  $("vNote").value="";save();renderVacc();renderVaccBar();
+}
+
+/* ============================================================
+   ARZTBERICHT (Druck / Datei)
+   ============================================================ */
+const RPT_VARS="--accent:#2e7d5b;--amber:#8a5a00;--red:#b3261e;--fg:#1c2b24;--muted:#5d6f66;--line:#d9e4dd;--card:#fff;--bg:#fff";
+function buildReport(pid,o){
+  const p=S.profiles.find(x=>x.id===pid);if(!p)return"";
+  const li=a=>a.length?"<ul>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>":"<p>–</p>";
+  let b=`<h1>Gesundheitsübersicht – ${esc(p.name)}</h1><p class="m">Erstellt am ${esc(fmtD(todayS()))} mit dem Hausmittel-Ratgeber v${APP_VERSION}. Selbst erfasste Angaben, keine ärztliche Diagnose.</p>`;
+  const am=ageM(p);
+  b+=`<h2>Person</h2><p>${p.type==="child"?"Kind":"Erwachsene/r"}${p.age!=null&&p.age!==""?", Alter: "+esc(ageText(am)):""}${p.weight?", Gewicht: "+esc(String(p.weight).replace(".",","))+" kg":""}${profileFlags(p).length?"<br>Besonderheiten: "+esc(profileFlags(p).map(f=>FLAG_LABEL[f]).join(", ")):""}</p>`;
+  if(o.med)b+=`<h2>Dauermedikation &amp; Allergien</h2><p><b>Dauermedikamente:</b> ${esc(p.meds||"keine angegeben")}<br><b>Allergien/Unverträglichkeiten:</b> ${esc(p.allergy||"keine angegeben")}</p>`;
+  if(o.sym){const ids=[...S.sel].filter(id=>SYM[id]);const res=ids.length?scoreConds(p,S.sel).slice(0,3):[];
+    b+=`<h2>Aktuell gewählte Symptome</h2>${li(ids.map(id=>esc(SYM[id].label)))}`;
+    if(res.length)b+=`<p class="m">Vom Programm genannte mögliche Ursachen (reine Orientierung): ${esc(res.map(r=>r.c.n).join("; "))}</p>`;}
+  if(o.temp){const l=tempsOf(pid);b+=`<h2>Fieberverlauf</h2>`;
+    if(l.length){const mx=l.reduce((a,x)=>!a||x.v>a.v?x:a,null);b+=`<p>${l.length} Messungen, Höchstwert ${fmtT(mx.v)} °C (${esc(fmtDT(mx.at))}), zuletzt ${fmtT(l[l.length-1].v)} °C.</p>`+tempChart(l,"all")+`<table><tr><th>Zeitpunkt</th><th>°C</th><th>Messort</th><th>Notiz</th></tr>${l.slice(-15).map(x=>`<tr><td>${esc(fmtDT(x.at))}</td><td>${fmtT(x.v)}</td><td>${esc(x.site||"")}</td><td>${esc(x.note||"")}</td></tr>`).join("")}</table>`;}
+    else b+="<p>Keine Messwerte erfasst.</p>";}
+  if(o.dia){const d=S.diary.filter(e=>e.pid===pid).sort((a,b)=>a.start<b.start?1:-1).slice(0,8);b+=`<h2>Krankheitstagebuch (letzte Einträge)</h2>`+(d.length?`<table><tr><th>Zeitraum</th><th>Beschwerde</th><th>Details</th></tr>${d.map(e=>`<tr><td>${esc(fmtD(e.start))}${e.end?" – "+esc(fmtD(e.end)):e.active?" – aktiv":""}</td><td>${esc(e.title)}</td><td>${esc([e.sym&&"Symptome: "+e.sym,e.treat&&"Behandlung: "+e.treat,e.temp&&"max. "+e.temp+" °C",e.doc&&"Arzt aufgesucht",e.note].filter(Boolean).join(" · "))}</td></tr>`).join("")}</table>`:"<p>Keine Einträge.</p>");}
+  if(o.vac){const l=vaccOf(pid).sort((a,b)=>a.date<b.date?-1:1);b+=`<h2>Impfungen</h2>`+(l.length?`<table><tr><th>Datum</th><th>Impfung</th><th>Notiz</th></tr>${l.map(x=>{const d=VACC.find(v=>v.k===x.key);return`<tr><td>${esc(fmtD(x.date))}</td><td>${esc(d?d.n:x.key)}</td><td>${esc(x.note||"")}</td></tr>`;}).join("")}</table>`:"<p>Keine Impfungen erfasst.</p>");}
+  return b;
+}
+const RPT_CSS="body,#printArea{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1c2b24;line-height:1.4;font-size:12pt}h1{font-size:18pt;margin:0 0 .2em}h2{font-size:13pt;margin:1em 0 .3em;border-bottom:1px solid #ccc}.m{color:#555;font-size:10pt}table{border-collapse:collapse;width:100%;font-size:10.5pt}td,th{border:1px solid #bbb;padding:3px 6px;text-align:left;vertical-align:top}svg{max-width:100%}";
+function openReport(){
+  if(!S.profiles.length){alert("Bitte zuerst ein Profil anlegen.");return;}
+  $("rpPid").innerHTML=S.profiles.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+  $("rpPid").value=S.fpid!=="all"&&S.profiles.some(p=>p.id===S.fpid)?S.fpid:(S.active||S.profiles[0].id);
+  $("dlgRep").showModal();
+}
+function reportOpts(){return{med:$("rpMed").checked,sym:$("rpSym").checked,temp:$("rpTemp").checked,dia:$("rpDia").checked,vac:$("rpVac").checked};}
+function printReport(){
+  const html=buildReport($("rpPid").value,reportOpts());$("dlgRep").close();
+  const pa=$("printArea");pa.setAttribute("style",RPT_VARS);pa.innerHTML="<style>"+RPT_CSS+"</style>"+html;
+  const done=()=>{pa.innerHTML="";window.removeEventListener("afterprint",done);};
+  window.addEventListener("afterprint",done);
+  setTimeout(()=>{try{window.print();}catch(e){alert("Drucken wird auf diesem Gerät nicht unterstützt – bitte „Als Datei“ nutzen.");done();}},150);
+}
+function fileReport(){
+  const pid=$("rpPid").value,html=buildReport(pid,reportOpts());$("dlgRep").close();
+  const doc='<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gesundheitsübersicht</title><style>'+RPT_CSS+'</style></head><body style="'+RPT_VARS+';padding:12px">'+html+'</body></html>';
+  const nm=(S.profiles.find(p=>p.id===pid)||{}).name||"Person";
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([doc],{type:"text/html"}));a.download="arztbericht-"+nm.replace(/[^\wäöüÄÖÜß-]+/g,"_")+"-"+todayS()+".html";
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
 }
 //#LOGIC_END
 if(typeof document!=="undefined"&&document.getElementById("profSel"))init();
