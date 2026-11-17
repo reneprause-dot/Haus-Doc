@@ -1,5 +1,5 @@
 // Hausmittel-Ratgeber – Service Worker (Version mit APP_VERSION in index.html abgleichen)
-const CACHE = "hausmittel-pwa-v1.3.7";
+const CACHE = "hausmittel-pwa-v1.4.0";
 const FILES = ["./", "./index.html"];
 
 self.addEventListener("install", e => {
