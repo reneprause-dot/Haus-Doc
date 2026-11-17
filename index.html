@@ -186,6 +186,7 @@ svg.tchart{width:100%;height:auto;display:block}
   <button id="btnInfo" aria-label="Hinweise">ⓘ</button>
   <nav class="tabs" id="tabs" aria-label="Bereiche">
     <button data-view="guide" aria-pressed="true">🩺 Ratgeber</button>
+    <button data-view="ai" aria-pressed="false">✨ KI</button>
     <button data-view="diary" aria-pressed="false">📒 Tagebuch</button>
     <button data-view="cal" aria-pressed="false">📅 Kalender</button>
     <button data-view="season" aria-pressed="false">🌦 Saison</button>
@@ -229,8 +230,16 @@ svg.tchart{width:100%;height:auto;display:block}
       <div id="condList"></div>
     </section>
     <section class="card" id="multiCard" hidden></section>
-    <section class="card" id="aiCard">
-      <h2>✨ KI-Unterstützung</h2>
+    <section class="card" id="aiTeaser"><button class="btn sec" id="aiGo" style="width:100%">✨ KI fragen – Symptome in eigenen Worten beschreiben</button></section>
+  </div>
+</main>
+
+<section class="wrap view" id="viewAi" hidden>
+  <section class="card" id="aiCard">
+      <h2>✨ KI-Assistent</h2>
+      <div class="field"><label for="aiPid">Person</label><select id="aiPid"></select></div>
+      <div id="aiCtx" class="muted" style="margin:0 0 .6rem"></div>
+      <div id="aiNoKey" class="banner gelb" hidden>Noch kein API-Schlüssel hinterlegt. Trage ihn unten unter „⚙ KI-Einstellungen“ ein.</div>
       <p class="muted" style="margin-top:0">Optional (eigener Google-Gemini-API-Schlüssel nötig). Es werden nur auf Knopfdruck Profil-Eckdaten (Alter, Gewicht, Besonderheiten) und deine Symptome an Google gesendet.</p>
       <div class="field"><label for="aiFree">Beschreibe in eigenen Worten, was los ist – die KI wählt passende Symptome aus</label>
         <textarea id="aiFree" placeholder="z. B. Seit gestern Abend Halsschmerzen, laufende Nase und abends leichtes Fieber …"></textarea></div>
@@ -241,7 +250,9 @@ svg.tchart{width:100%;height:auto;display:block}
       <div class="field" style="margin-top:.8rem"><label for="aiQ">Frage zu Hausmitteln oder Verträglichkeit</label>
         <input type="text" id="aiQ" placeholder="z. B. Darf mein Kind Kamillentee trinken?"></div>
       <button class="btn sec" id="aiAsk">Fragen</button>
+      <div class="row" id="aiChips" style="margin-top:.4rem"></div>
       <div id="aiOut"></div>
+      <div class="row" style="margin-top:.6rem"><button class="btn sec" id="aiToGuide">🩺 Zum Ratgeber</button></div>
       <details style="margin-top:.8rem"><summary class="muted" style="cursor:pointer">⚙ KI-Einstellungen</summary>
         <div class="field"><label for="aiKey">Gemini-API-Schlüssel (nur auf diesem Gerät gespeichert)</label>
           <input type="password" id="aiKey" autocomplete="off" placeholder="AQ.… oder AIza…"></div>
@@ -250,8 +261,7 @@ svg.tchart{width:100%;height:auto;display:block}
         <div class="muted" id="aiStat" style="margin-top:.4rem"></div>
       </details>
     </section>
-  </div>
-</main>
+</section>
 
 <section class="wrap view" id="viewDiary" hidden>
   <div class="card">
@@ -474,7 +484,7 @@ svg.tchart{width:100%;height:auto;display:block}
 
 <script>
 "use strict";
-const APP_VERSION="1.8.0";
+const APP_VERSION="1.9.0";
 
 /* ============================================================
    DATENBANK
@@ -1807,7 +1817,7 @@ async function aiExtract(){
     ids.forEach(id=>S.sel.add(id));
     S.userToggled=false;
     save();renderSymptoms();renderSelected();renderResults();
-    aiShow(`<p><b>${ids.length} Symptom${ids.length===1?"":"e"} übernommen:</b> ${ids.map(id=>esc(SYM[id].label)).join(", ")||"keine"}</p>${j.hinweis?"<p>"+esc(j.hinweis)+"</p>":""}`);
+    renderAi();aiShow(`<p><b>${ids.length} Symptom${ids.length===1?"":"e"} übernommen (sichtbar im Ratgeber):</b> ${ids.map(id=>esc(SYM[id].label)).join(", ")||"keine"}</p>${j.hinweis?"<p>"+esc(j.hinweis)+"</p>":""}`);
   }catch(e){aiErr(e);}
 }
 async function aiAssess(){
@@ -1938,7 +1948,7 @@ function init(){
   });
   $("discOk").onclick=()=>{S.disc=true;save();$("dlgDisc").close();if(!S.profiles.length)openProfileDialog();};
   $("barGo").onclick=()=>$("results").scrollIntoView({behavior:"smooth",block:"start"});
-  $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();{const kf=keyFormat(S.ai.key);$("aiStat").textContent=(kf.ok?"Gespeichert. ":"Gespeichert, aber: ")+keyInfo()+".";}};
+  $("aiSave").onclick=()=>{S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();renderAi();{const kf=keyFormat(S.ai.key);$("aiStat").textContent=(kf.ok?"Gespeichert. ":"Gespeichert, aber: ")+keyInfo()+".";}};
   $("aiTest").onclick=async()=>{
     S.ai.key=cleanKey($("aiKey").value);$("aiKey").value=S.ai.key;S.ai.model=$("aiModel").value.trim()||"gemini-flash-latest";save();
     const st=$("aiStat");
@@ -1975,6 +1985,9 @@ function init(){
   $("fileImport").onchange=e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value="";};
   $("btnWipe").onclick=wipeAll;
   try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(ok=>{S.persisted=ok;if(S.view==="diary")renderDiary();}).catch(()=>{});}}catch(e){}
+  $("aiPid").onchange=e=>{if(!e.target.value)return;S.active=e.target.value;save();S.userToggled=false;renderAll();renderAi();};
+  $("aiGo").onclick=()=>switchView("ai");$("aiToGuide").onclick=()=>switchView("guide");
+  $("aiChips").addEventListener("click",e=>{const b=e.target.closest("[data-aichip]");if(!b)return;$("aiQ").value=b.dataset.aichip;aiAsk();});
   $("aiExtract").onclick=aiExtract;$("aiAssess").onclick=aiAssess;$("aiAsk").onclick=aiAsk;
   if(!S.disc)$("dlgDisc").showModal();else if(!S.profiles.length)openProfileDialog();
   setupPWA();
@@ -2163,13 +2176,13 @@ function renderSeason(){
 function switchView(v){
   S.view=v;
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===v));
-  $("viewGuide").hidden=v!=="guide";$("viewDiary").hidden=v!=="diary";$("viewCal").hidden=v!=="cal";$("viewSeason").hidden=v!=="season";$("viewStock").hidden=v!=="stock";$("viewTemp").hidden=v!=="temp";$("viewVacc").hidden=v!=="vacc";
+  $("viewGuide").hidden=v!=="guide";$("viewAi").hidden=v!=="ai";$("viewDiary").hidden=v!=="diary";$("viewCal").hidden=v!=="cal";$("viewSeason").hidden=v!=="season";$("viewStock").hidden=v!=="stock";$("viewTemp").hidden=v!=="temp";$("viewVacc").hidden=v!=="vacc";
   $("bar").style.display=v==="guide"?"":"none";
   refreshViews();window.scrollTo(0,0);
 }
 function refreshViews(){
   fillFilters();
-  if(S.view==="diary")renderDiary();else if(S.view==="cal")renderCal();else if(S.view==="season")renderSeason();else if(S.view==="stock")renderStock();else if(S.view==="temp")renderTemp();else if(S.view==="vacc")renderVacc();
+  if(S.view==="diary")renderDiary();else if(S.view==="cal")renderCal();else if(S.view==="season")renderSeason();else if(S.view==="stock")renderStock();else if(S.view==="temp")renderTemp();else if(S.view==="vacc")renderVacc();else if(S.view==="ai")renderAi();
 }
 /* ---- Backup ---- */
 function exportData(){
@@ -2495,6 +2508,22 @@ function fileReport(){
   const nm=(S.profiles.find(p=>p.id===pid)||{}).name||"Person";
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([doc],{type:"text/html"}));a.download="arztbericht-"+nm.replace(/[^\wäöüÄÖÜß-]+/g,"_")+"-"+todayS()+".html";
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ============================================================
+   KI-BEREICH
+   ============================================================ */
+const AI_CHIPS=["Darf ich dazu Kamillentee trinken?","Was hilft zusätzlich ohne Medikamente?","Wann sollte ich damit zum Arzt?","Passt das zu meiner Dauermedikation?"];
+function renderAi(){
+  if(!$("aiPid"))return;
+  const sel=$("aiPid");
+  sel.innerHTML=S.profiles.length?S.profiles.map(p=>`<option value="${esc(p.id)}">${p.type==="child"?"🧒":"🧑"} ${esc(p.name)}</option>`).join(""):'<option value="">(kein Profil)</option>';
+  if(S.active)sel.value=S.active;
+  const p=prof();
+  const syms=[...S.sel].filter(id=>SYM[id]).map(id=>SYM[id].label);
+  $("aiCtx").innerHTML=p?`<b>Profil:</b> ${esc(profileText(p))}<br><b>Gewählte Symptome:</b> ${syms.length?esc(syms.join(", ")):"keine – im Ratgeber auswählen oder unten beschreiben"}`:"Bitte im Ratgeber zuerst ein Profil anlegen.";
+  $("aiNoKey").hidden=!!(S.ai&&S.ai.key);
+  if(!$("aiChips").children.length)$("aiChips").innerHTML=AI_CHIPS.map(t=>`<button class="btn sec" data-aichip="${esc(t)}" style="padding:.3rem .6rem;font-size:.85em">${esc(t)}</button>`).join("");
 }
 //#LOGIC_END
 if(typeof document!=="undefined"&&document.getElementById("profSel"))init();
